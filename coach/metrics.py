@@ -1,6 +1,6 @@
-"""Métriques du pilote (US22) et relecture des plans générés (US23).
+"""Pilot metrics (US22) and review of generated plans (US23).
 
-Usage : `coach-metrics` (rapport) ou `coach-metrics --plans 50` (derniers plannings générés).
+Usage: `coach-metrics` (report) or `coach-metrics --plans 50` (latest generated plans).
 """
 
 from __future__ import annotations
@@ -27,7 +27,7 @@ class PilotMetrics:
     consented: int = 0
     onboarded: int = 0
     activation: float | None = None
-    retention: dict[int, tuple[int, int]] = field(default_factory=dict)  # semaine → (actifs, éligibles)
+    retention: dict[int, tuple[int, int]] = field(default_factory=dict)  # week -> (active, eligible)
     sessions_done: int = 0
     sessions_missed: int = 0
     adherence: float | None = None
@@ -121,39 +121,41 @@ def _aware(dt: datetime) -> datetime:
 
 
 def _pct(x: float | None) -> str:
-    return "n/d" if x is None else f"{100 * x:.0f} %"
+    return "n/a" if x is None else f"{100 * x:.0f}%"
 
 
 def report(m: PilotMetrics) -> str:
+    """Operator-facing report (English), used by `coach-metrics` and the /stats command."""
     lines = [
-        "Métriques du pilote",
-        f"Inscrits {m.registered} · consentement {m.consented} · onboarding terminé {m.onboarded}",
-        f"Activation (onboarding + premier plan) : {_pct(m.activation)}  (cible ≥ 80 %)",
+        "Pilot metrics",
+        f"Registered {m.registered} · consented {m.consented} · onboarded {m.onboarded}",
+        f"Activation (onboarding + first plan): {_pct(m.activation)}  (target >= 80%)",
     ]
     for k, (active, eligible) in m.retention.items():
-        target = {4: "  (cible ≥ 50 %)", 8: "  (cible ≥ 35 %)"}.get(k, "")
-        lines.append(f"Rétention S{k} (planning fait) : {active}/{eligible} = {_pct(_ratio(active, eligible))}{target}")
-    lines.append(f"Suivi du plan : {m.sessions_done} faites / {m.sessions_done + m.sessions_missed} passées "
-                 f"= {_pct(m.adherence)}  (cible ≥ 60 %)")
+        target = {4: "  (target >= 50%)", 8: "  (target >= 35%)"}.get(k, "")
+        lines.append(f"Retention W{k} (planning done): {active}/{eligible} = {_pct(_ratio(active, eligible))}{target}")
+    lines.append(f"Plan adherence: {m.sessions_done} done / {m.sessions_done + m.sessions_missed} past "
+                 f"= {_pct(m.adherence)}  (target >= 60%)")
     total_fb = sum(m.feedback_counts.values())
-    lines.append("Retours : " + ", ".join(f"{k} {v}" for k, v in sorted(m.feedback_counts.items()))
-                 + f" · part « ok » {_pct(_ratio(m.feedback_counts.get('ok', 0), total_fb))}  (cible ≥ 60 %)")
-    lines.append(f"Recommandation (médiane sur {m.nps_count}) : "
-                 f"{'n/d' if m.nps_median is None else m.nps_median}  (cible ≥ 8)")
+    lines.append("Feedback: " + ", ".join(f"{k} {v}" for k, v in sorted(m.feedback_counts.items()))
+                 + f" · share of \"ok\" {_pct(_ratio(m.feedback_counts.get('ok', 0), total_fb))}  (target >= 60%)")
+    lines.append(f"Recommendation score (median of {m.nps_count}): "
+                 f"{'n/a' if m.nps_median is None else m.nps_median}  (target >= 8)")
     t = m.tokens
-    lines.append(f"Tokens 30 j : entrée {t.get('input_tokens', 0):,} · sortie {t.get('output_tokens', 0):,} · "
-                 f"cache lu {t.get('cache_read', 0):,} · cache écrit {t.get('cache_write', 0):,}".replace(",", " "))
+    lines.append(f"Tokens, last 30 days: input {t.get('input_tokens', 0):,} · output {t.get('output_tokens', 0):,} · "
+                 f"cache read {t.get('cache_read', 0):,} · cache write {t.get('cache_write', 0):,}")
     if m.cost_30d_usd is not None:
         per_user = m.cost_30d_usd / m.active_30d if m.active_30d else None
-        lines.append(f"Coût LLM 30 j : {m.cost_30d_usd:.2f} $ · par utilisateur actif : "
-                     f"{'n/d' if per_user is None else f'{per_user:.2f} $'}  (cible ≤ 5 €)")
+        lines.append(f"LLM cost, last 30 days: ${m.cost_30d_usd:.2f} · per active user: "
+                     f"{'n/a' if per_user is None else f'${per_user:.2f}'}  (target <= EUR 5)")
     else:
-        lines.append("Coût LLM : renseigner les tarifs LLM_*_USD_PER_MTOK pour l'estimer.")
-    lines.append(f"Utilisateurs actifs 30 j : {m.active_30d} · pauses de sécurité en cours : {m.safety_holds}")
+        lines.append("LLM cost: set the LLM_*_USD_PER_MTOK prices to estimate it.")
+    lines.append(f"Active users, last 30 days: {m.active_30d} · safety holds in progress: {m.safety_holds}")
     return "\n".join(lines)
 
 
 async def recent_plans(s: AsyncSession, limit: int) -> str:
+    """Operator-facing list of the latest generated plans (US23)."""
     events = (await s.scalars(
         select(EventLog).where(EventLog.kind == "week_planned").order_by(EventLog.id.desc()).limit(limit)
     )).all()
@@ -161,9 +163,9 @@ async def recent_plans(s: AsyncSession, limit: int) -> str:
     for e in events:
         p = e.payload
         sessions = ", ".join(f"{x['day']} {x['time']} {x['minutes']}min" for x in p.get("sessions", []))
-        out.append(f"#{e.id} user {e.user_id} · semaine {p.get('week_start')} · charge {p.get('load')}\n"
-                   f"  séances : {sessions or 'aucune'}\n  dîners : {', '.join(p.get('dinners', [])) or 'aucun'}")
-    return "\n".join(out) or "Aucun planning généré."
+        out.append(f"#{e.id} user {e.user_id} · week {p.get('week_start')} · load {p.get('load')}\n"
+                   f"  sessions: {sessions or 'none'}\n  dinners: {', '.join(p.get('dinners', [])) or 'none'}")
+    return "\n".join(out) or "No plan generated yet."
 
 
 async def _main(args: argparse.Namespace) -> None:
@@ -175,8 +177,8 @@ async def _main(args: argparse.Namespace) -> None:
 
 
 def cli() -> None:
-    parser = argparse.ArgumentParser(description="Métriques du pilote")
-    parser.add_argument("--plans", type=int, default=0, help="Afficher les N derniers plannings générés")
+    parser = argparse.ArgumentParser(description="Pilot metrics")
+    parser.add_argument("--plans", type=int, default=0, help="Show the N latest generated plans")
     asyncio.run(_main(parser.parse_args()))
 
 

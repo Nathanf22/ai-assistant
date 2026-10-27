@@ -1,4 +1,4 @@
-"""Génération de séances à partir de la bibliothèque (F4, US13)."""
+"""Session generation from the library (F4, US13)."""
 
 from __future__ import annotations
 
@@ -13,24 +13,25 @@ SECONDS_PER_REP = 3
 TRANSITION_SECONDS = 15
 MIN_MINUTES = 8
 
-# Rotation des séances dans la semaine.
-FOCUS_ROTATION = ("full_body", "bas_gainage", "haut_cardio")
+# Weekly rotation of session focuses.
+FOCUS_ROTATION = ("full_body", "lower_core", "upper_cardio")
 FOCUS_TAGS = {
-    "full_body": {"jambes", "haut", "gainage"},
-    "bas_gainage": {"jambes", "gainage"},
-    "haut_cardio": {"haut", "cardio", "gainage"},
-    "mobilite": {"mobilite"},
+    "full_body": {"legs", "upper", "core"},
+    "lower_core": {"legs", "core"},
+    "upper_cardio": {"upper", "cardio", "core"},
+    "mobility": {"mobility"},
 }
 FOCUS_ORDER = {
-    "full_body": ["jambes", "haut", "gainage"],
-    "bas_gainage": ["jambes", "gainage", "jambes"],
-    "haut_cardio": ["haut", "cardio", "gainage"],
+    "full_body": ["legs", "upper", "core"],
+    "lower_core": ["legs", "core", "legs"],
+    "upper_cardio": ["upper", "cardio", "core"],
 }
+# Labels shown to users (French).
 FOCUS_LABELS = {
     "full_body": "Corps entier",
-    "bas_gainage": "Jambes et gainage",
-    "haut_cardio": "Haut du corps et cardio",
-    "mobilite": "Mobilité douce",
+    "lower_core": "Jambes et gainage",
+    "upper_cardio": "Haut du corps et cardio",
+    "mobility": "Mobilité douce",
 }
 
 
@@ -39,7 +40,7 @@ class SessionRequest:
     minutes: int
     focus: str
     load: int
-    level: int  # 1 débutant, 2 intermédiaire, 3 avancé
+    level: int  # 1 beginner, 2 intermediate, 3 advanced
     equipment: frozenset[str]
     liked: frozenset[str] = frozenset()
     avoided: frozenset[str] = frozenset()
@@ -50,7 +51,7 @@ class SessionRequest:
 def _available(ex: Exercise, req: SessionRequest) -> bool:
     if ex.id in req.avoided:
         return False
-    if ex.equipment != "aucun" and ex.equipment not in req.equipment:
+    if ex.equipment != "none" and ex.equipment not in req.equipment:
         return False
     if ex.level > req.level:
         return False
@@ -79,7 +80,7 @@ def total_minutes(items: list[dict]) -> int:
 
 
 def _pick(pool: list[Exercise], k: int, rng: random.Random, liked: frozenset[str]) -> list[Exercise]:
-    """Tirage sans remise, les exercices appréciés ont trois fois plus de chances."""
+    """Draw without replacement; liked exercises are three times more likely."""
     chosen: list[Exercise] = []
     pool = list(pool)
     while pool and len(chosen) < k:
@@ -91,12 +92,12 @@ def _pick(pool: list[Exercise], k: int, rng: random.Random, liked: frozenset[str
 
 
 def build_session(lib: Library, req: SessionRequest) -> list[dict]:
-    """Construit une séance : échauffement, bloc principal en circuit, retour au calme."""
+    """Build a session: warm-up, main circuit, cool-down."""
     minutes = max(MIN_MINUTES, req.minutes)
     rng = random.Random(f"{req.seed}:{req.focus}:{minutes}:{req.load}")
     budget = minutes * 60
     exercises = [e for e in lib.exercises.values() if _available(e, req)]
-    if req.focus == "mobilite":  # séance douce : jamais de sauts
+    if req.focus == "mobility":  # gentle session: never any jumps
         exercises = [e for e in exercises if e.impact == "low"]
 
     warmups = [e for e in exercises if e.role == "warmup"]
@@ -105,10 +106,10 @@ def build_session(lib: Library, req: SessionRequest) -> list[dict]:
     cool = [_item(e, 1, 1.0, rest=0) for e in _pick(cooldowns, 1 if minutes < 20 else 2, rng, req.liked)]
     budget -= sum(item_seconds(i) for i in warm + cool)
 
-    if req.focus == "mobilite":
-        # Séance douce : uniquement mobilité et retour au calme, à faible charge.
+    if req.focus == "mobility":
+        # Gentle session: mobility and cool-down exercises only, at low intensity.
         taken = {i["id"] for i in warm + cool}
-        soft = [e for e in exercises if "mobilite" in e.focus and e.id not in taken]
+        soft = [e for e in exercises if "mobility" in e.focus and e.id not in taken]
         main = []
         for ex in _pick(soft, len(soft), rng, req.liked):
             item = _item(ex, 2, 1.0, rest=15)
@@ -123,8 +124,8 @@ def build_session(lib: Library, req: SessionRequest) -> list[dict]:
     mains = [e for e in exercises if e.role == "main" and set(e.focus) & tags]
     target = max_main_exercises(minutes)
 
-    # 1. Choisir les exercices en tournant entre les groupes du focus (le premier groupe
-    #    nommé, par exemple les jambes, passe avant le gainage).
+    # 1. Pick exercises by rotating through the focus groups (the first group listed,
+    #    e.g. legs, comes before core).
     chosen: list[Exercise] = []
     order = FOCUS_ORDER.get(req.focus, sorted(tags))
     while len(chosen) < target:
@@ -140,7 +141,7 @@ def build_session(lib: Library, req: SessionRequest) -> list[dict]:
         if not added:
             break
 
-    # 2. Ajuster le nombre de séries au temps disponible (jusqu'à +2 tours).
+    # 2. Fit the number of sets to the available time (up to 2 extra rounds).
     def block(sets: int, exs: list[Exercise]) -> list[dict]:
         return [_item(e, sets, mult) for e in exs]
 
@@ -148,10 +149,10 @@ def build_session(lib: Library, req: SessionRequest) -> list[dict]:
         return sum(item_seconds(i) for i in items)
 
     main = block(base_sets, chosen)
-    while len(main) > 2 and cost(main) > budget:  # trop long : retirer des exercices
+    while len(main) > 2 and cost(main) > budget:  # too long: drop exercises
         chosen = chosen[:-1]
         main = block(base_sets, chosen)
-    while cost(main) > budget and main[0]["sets"] > 1:  # très court : moins de séries
+    while cost(main) > budget and main[0]["sets"] > 1:  # very short slot: fewer sets
         main = block(main[0]["sets"] - 1, chosen)
     for extra in (1, 2):
         longer = block(base_sets + extra, chosen)
@@ -165,6 +166,7 @@ def max_main_exercises(minutes: int) -> int:
 
 
 def format_session(items: list[dict], focus: str, minutes: int) -> str:
+    """User-facing rendering of a session (French)."""
     lines = [f"{FOCUS_LABELS.get(focus, focus)} · environ {minutes} min", ""]
     for n, it in enumerate(items, 1):
         amount = f"{it['seconds']} s" if "seconds" in it else f"{it['reps']} rép."

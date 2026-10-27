@@ -1,131 +1,132 @@
-# Bibliothèque de recettes de départ (dîners simples, 1 portion de référence).
-# À faire valider par un·e diététicien·ne avant le pilote.
+# Starter recipe library (simple dinners, quantities for 1 serving).
+# Must be reviewed by a dietitian before the pilot.
+# `name`, ingredient names and `steps` are shown to users and stay in French.
 #
-# Champs :
-#   id, name, minutes (temps total), steps (étapes courtes)
-#   ingredients : name, qty (pour 1 portion), unit (g, ml, piece, cs, cc),
-#                 aisle (fruits_legumes, epicerie, frais, boucherie_poisson, surgeles, boulangerie),
-#                 tags (gluten, lactose, oeuf, poisson, crustaces, arachide, fruits_a_coque,
-#                       soja, viande, porc, volaille, boeuf, champignons),
-#                 basic: true pour les produits de placard jamais mis sur la liste (sel, huile...)
-# Les tags « vegetarien » et « vegan » se déduisent automatiquement des ingrédients.
+# Fields:
+#   id, name, minutes (total time), steps (short steps)
+#   ingredients: name, qty (per serving), unit (g, ml, piece, tbsp, tsp),
+#                aisle (produce, grocery, dairy_eggs, meat_fish, frozen, bakery),
+#                tags (gluten, lactose, egg, fish, shellfish, peanut, tree_nuts,
+#                      soy, meat, pork, poultry, beef, mushroom),
+#                basic: true for pantry staples never put on the grocery list (salt, oil...)
+# "vegetarian" and "vegan" are derived automatically from the ingredient tags.
 
-- id: pates_thon_brocolis
+- id: tuna_broccoli_pasta
   name: Pâtes au thon et brocolis
   minutes: 20
   ingredients:
-    - {name: pâtes complètes, qty: 90, unit: g, aisle: epicerie, tags: [gluten]}
-    - {name: thon au naturel, qty: 1, unit: piece, aisle: epicerie, tags: [poisson]}
-    - {name: brocoli, qty: 150, unit: g, aisle: fruits_legumes}
-    - {name: citron, qty: 0.5, unit: piece, aisle: fruits_legumes}
-    - {name: huile d'olive, qty: 1, unit: cs, aisle: epicerie, basic: true}
+    - {name: pâtes complètes, qty: 90, unit: g, aisle: grocery, tags: [gluten]}
+    - {name: thon au naturel, qty: 1, unit: piece, aisle: grocery, tags: [fish]}
+    - {name: brocoli, qty: 150, unit: g, aisle: produce}
+    - {name: citron, qty: 0.5, unit: piece, aisle: produce}
+    - {name: huile d'olive, qty: 1, unit: tbsp, aisle: grocery, basic: true}
   steps:
     - Cuire les pâtes, ajouter le brocoli en fleurettes 4 minutes avant la fin.
     - Égoutter, mélanger avec le thon émietté, le jus de citron et l'huile.
 
-- id: omelette_epinards_feta
+- id: spinach_feta_omelette
   name: Omelette épinards et feta
   minutes: 15
   ingredients:
-    - {name: œufs, qty: 3, unit: piece, aisle: frais, tags: [oeuf]}
-    - {name: épinards frais, qty: 80, unit: g, aisle: fruits_legumes}
-    - {name: feta, qty: 40, unit: g, aisle: frais, tags: [lactose]}
-    - {name: pain complet, qty: 1, unit: piece, aisle: boulangerie, tags: [gluten]}
-    - {name: huile d'olive, qty: 1, unit: cc, aisle: epicerie, basic: true}
+    - {name: œufs, qty: 3, unit: piece, aisle: dairy_eggs, tags: [egg]}
+    - {name: épinards frais, qty: 80, unit: g, aisle: produce}
+    - {name: feta, qty: 40, unit: g, aisle: dairy_eggs, tags: [lactose]}
+    - {name: pain complet, qty: 1, unit: piece, aisle: bakery, tags: [gluten]}
+    - {name: huile d'olive, qty: 1, unit: tsp, aisle: grocery, basic: true}
   steps:
     - Faire tomber les épinards à la poêle 2 minutes.
     - Verser les œufs battus, émietter la feta, cuire à feu doux. Servir avec le pain.
 
-- id: curry_pois_chiches
+- id: chickpea_coconut_curry
   name: Curry de pois chiches au lait de coco
   minutes: 25
   ingredients:
-    - {name: pois chiches en conserve, qty: 200, unit: g, aisle: epicerie}
-    - {name: lait de coco, qty: 100, unit: ml, aisle: epicerie}
-    - {name: tomates concassées, qty: 150, unit: g, aisle: epicerie}
-    - {name: oignon, qty: 0.5, unit: piece, aisle: fruits_legumes}
-    - {name: riz basmati, qty: 70, unit: g, aisle: epicerie}
-    - {name: curry en poudre, qty: 1, unit: cc, aisle: epicerie, basic: true}
+    - {name: pois chiches en conserve, qty: 200, unit: g, aisle: grocery}
+    - {name: lait de coco, qty: 100, unit: ml, aisle: grocery}
+    - {name: tomates concassées, qty: 150, unit: g, aisle: grocery}
+    - {name: oignon, qty: 0.5, unit: piece, aisle: produce}
+    - {name: riz basmati, qty: 70, unit: g, aisle: grocery}
+    - {name: curry en poudre, qty: 1, unit: tsp, aisle: grocery, basic: true}
   steps:
     - Lancer le riz. Faire revenir l'oignon émincé avec le curry.
     - Ajouter tomates, pois chiches rincés et lait de coco, mijoter 12 minutes.
 
-- id: saumon_patate_douce
+- id: salmon_sweet_potato
   name: Saumon, patate douce rôtie et haricots verts
   minutes: 30
   ingredients:
-    - {name: pavé de saumon, qty: 1, unit: piece, aisle: boucherie_poisson, tags: [poisson]}
-    - {name: patate douce, qty: 200, unit: g, aisle: fruits_legumes}
-    - {name: haricots verts surgelés, qty: 150, unit: g, aisle: surgeles}
-    - {name: huile d'olive, qty: 1, unit: cs, aisle: epicerie, basic: true}
+    - {name: pavé de saumon, qty: 1, unit: piece, aisle: meat_fish, tags: [fish]}
+    - {name: patate douce, qty: 200, unit: g, aisle: produce}
+    - {name: haricots verts surgelés, qty: 150, unit: g, aisle: frozen}
+    - {name: huile d'olive, qty: 1, unit: tbsp, aisle: grocery, basic: true}
   steps:
     - Rôtir la patate douce en cubes 25 minutes à 200 °C.
     - Ajouter le saumon au four les 12 dernières minutes. Cuire les haricots à la vapeur.
 
-- id: poulet_riz_legumes
+- id: chicken_rice_stir_fry
   name: Sauté de poulet, riz et légumes
   minutes: 25
   ingredients:
-    - {name: blanc de poulet, qty: 130, unit: g, aisle: boucherie_poisson, tags: [viande, volaille]}
-    - {name: poêlée de légumes surgelée, qty: 200, unit: g, aisle: surgeles}
-    - {name: riz, qty: 70, unit: g, aisle: epicerie}
-    - {name: sauce soja, qty: 1, unit: cs, aisle: epicerie, tags: [soja, gluten]}
-    - {name: huile, qty: 1, unit: cs, aisle: epicerie, basic: true}
+    - {name: blanc de poulet, qty: 130, unit: g, aisle: meat_fish, tags: [meat, poultry]}
+    - {name: poêlée de légumes surgelée, qty: 200, unit: g, aisle: frozen}
+    - {name: riz, qty: 70, unit: g, aisle: grocery}
+    - {name: sauce soja, qty: 1, unit: tbsp, aisle: grocery, tags: [soy, gluten]}
+    - {name: huile, qty: 1, unit: tbsp, aisle: grocery, basic: true}
   steps:
     - Lancer le riz. Saisir le poulet en lamelles 5 minutes.
     - Ajouter les légumes, cuire 8 minutes, déglacer à la sauce soja.
 
-- id: lentilles_corail_dahl
+- id: red_lentil_dahl
   name: Dahl de lentilles corail
   minutes: 25
   ingredients:
-    - {name: lentilles corail, qty: 80, unit: g, aisle: epicerie}
-    - {name: tomates concassées, qty: 100, unit: g, aisle: epicerie}
-    - {name: lait de coco, qty: 80, unit: ml, aisle: epicerie}
-    - {name: oignon, qty: 0.5, unit: piece, aisle: fruits_legumes}
-    - {name: pain naan, qty: 1, unit: piece, aisle: boulangerie, tags: [gluten, lactose]}
-    - {name: épices (curcuma, cumin), qty: 1, unit: cc, aisle: epicerie, basic: true}
+    - {name: lentilles corail, qty: 80, unit: g, aisle: grocery}
+    - {name: tomates concassées, qty: 100, unit: g, aisle: grocery}
+    - {name: lait de coco, qty: 80, unit: ml, aisle: grocery}
+    - {name: oignon, qty: 0.5, unit: piece, aisle: produce}
+    - {name: pain naan, qty: 1, unit: piece, aisle: bakery, tags: [gluten, lactose]}
+    - {name: épices (curcuma, cumin), qty: 1, unit: tsp, aisle: grocery, basic: true}
   steps:
     - Faire revenir l'oignon et les épices, ajouter lentilles, tomates, lait de coco et 200 ml d'eau.
     - Cuire 15 minutes en remuant. Servir avec le naan.
 
-- id: wrap_dinde_crudites
+- id: turkey_veggie_wraps
   name: Wraps dinde et crudités
   minutes: 10
   ingredients:
-    - {name: tortillas de blé, qty: 2, unit: piece, aisle: epicerie, tags: [gluten]}
-    - {name: blanc de dinde, qty: 80, unit: g, aisle: frais, tags: [viande, volaille]}
-    - {name: carotte, qty: 1, unit: piece, aisle: fruits_legumes}
-    - {name: salade, qty: 40, unit: g, aisle: fruits_legumes}
-    - {name: fromage frais, qty: 30, unit: g, aisle: frais, tags: [lactose]}
+    - {name: tortillas de blé, qty: 2, unit: piece, aisle: grocery, tags: [gluten]}
+    - {name: blanc de dinde, qty: 80, unit: g, aisle: dairy_eggs, tags: [meat, poultry]}
+    - {name: carotte, qty: 1, unit: piece, aisle: produce}
+    - {name: salade, qty: 40, unit: g, aisle: produce}
+    - {name: fromage frais, qty: 30, unit: g, aisle: dairy_eggs, tags: [lactose]}
   steps:
     - Tartiner les tortillas de fromage frais, garnir de dinde, carotte râpée et salade.
     - Rouler serré et couper en deux.
 
-- id: soupe_legumes_oeuf
+- id: vegetable_soup_soft_egg
   name: Soupe de légumes et œuf mollet
   minutes: 30
   ingredients:
-    - {name: poireau, qty: 1, unit: piece, aisle: fruits_legumes}
-    - {name: pomme de terre, qty: 150, unit: g, aisle: fruits_legumes}
-    - {name: carotte, qty: 1, unit: piece, aisle: fruits_legumes}
-    - {name: œufs, qty: 2, unit: piece, aisle: frais, tags: [oeuf]}
-    - {name: pain complet, qty: 1, unit: piece, aisle: boulangerie, tags: [gluten]}
-    - {name: bouillon cube, qty: 1, unit: piece, aisle: epicerie, basic: true}
+    - {name: poireau, qty: 1, unit: piece, aisle: produce}
+    - {name: pomme de terre, qty: 150, unit: g, aisle: produce}
+    - {name: carotte, qty: 1, unit: piece, aisle: produce}
+    - {name: œufs, qty: 2, unit: piece, aisle: dairy_eggs, tags: [egg]}
+    - {name: pain complet, qty: 1, unit: piece, aisle: bakery, tags: [gluten]}
+    - {name: bouillon cube, qty: 1, unit: piece, aisle: grocery, basic: true}
   steps:
     - Cuire les légumes en morceaux 20 minutes dans 500 ml de bouillon, mixer.
     - Cuire les œufs 6 minutes. Servir avec le pain.
 
-- id: buddha_bowl_quinoa
+- id: quinoa_chickpea_bowl
   name: Bol de quinoa, avocat et pois chiches rôtis
   minutes: 25
   ingredients:
-    - {name: quinoa, qty: 70, unit: g, aisle: epicerie}
-    - {name: pois chiches en conserve, qty: 120, unit: g, aisle: epicerie}
-    - {name: avocat, qty: 0.5, unit: piece, aisle: fruits_legumes}
-    - {name: tomates cerises, qty: 100, unit: g, aisle: fruits_legumes}
-    - {name: paprika, qty: 1, unit: cc, aisle: epicerie, basic: true}
-    - {name: huile d'olive, qty: 1, unit: cs, aisle: epicerie, basic: true}
+    - {name: quinoa, qty: 70, unit: g, aisle: grocery}
+    - {name: pois chiches en conserve, qty: 120, unit: g, aisle: grocery}
+    - {name: avocat, qty: 0.5, unit: piece, aisle: produce}
+    - {name: tomates cerises, qty: 100, unit: g, aisle: produce}
+    - {name: paprika, qty: 1, unit: tsp, aisle: grocery, basic: true}
+    - {name: huile d'olive, qty: 1, unit: tbsp, aisle: grocery, basic: true}
   steps:
     - Cuire le quinoa. Rôtir les pois chiches au paprika 15 minutes à la poêle.
     - Assembler avec l'avocat et les tomates.
@@ -134,88 +135,88 @@
   name: Chili sin carne
   minutes: 30
   ingredients:
-    - {name: haricots rouges en conserve, qty: 200, unit: g, aisle: epicerie}
-    - {name: maïs en conserve, qty: 60, unit: g, aisle: epicerie}
-    - {name: tomates concassées, qty: 200, unit: g, aisle: epicerie}
-    - {name: poivron, qty: 0.5, unit: piece, aisle: fruits_legumes}
-    - {name: riz, qty: 60, unit: g, aisle: epicerie}
-    - {name: épices chili, qty: 1, unit: cc, aisle: epicerie, basic: true}
+    - {name: haricots rouges en conserve, qty: 200, unit: g, aisle: grocery}
+    - {name: maïs en conserve, qty: 60, unit: g, aisle: grocery}
+    - {name: tomates concassées, qty: 200, unit: g, aisle: grocery}
+    - {name: poivron, qty: 0.5, unit: piece, aisle: produce}
+    - {name: riz, qty: 60, unit: g, aisle: grocery}
+    - {name: épices chili, qty: 1, unit: tsp, aisle: grocery, basic: true}
   steps:
     - Lancer le riz. Faire revenir le poivron, ajouter tomates, haricots, maïs et épices.
     - Mijoter 15 minutes.
 
-- id: steak_hache_puree
+- id: burger_steak_mash
   name: Steak haché, purée maison et salade
   minutes: 25
   ingredients:
-    - {name: steak haché 5 %, qty: 1, unit: piece, aisle: boucherie_poisson, tags: [viande, boeuf]}
-    - {name: pomme de terre, qty: 250, unit: g, aisle: fruits_legumes}
-    - {name: lait demi-écrémé, qty: 60, unit: ml, aisle: frais, tags: [lactose]}
-    - {name: salade, qty: 50, unit: g, aisle: fruits_legumes}
+    - {name: steak haché 5 %, qty: 1, unit: piece, aisle: meat_fish, tags: [meat, beef]}
+    - {name: pomme de terre, qty: 250, unit: g, aisle: produce}
+    - {name: lait demi-écrémé, qty: 60, unit: ml, aisle: dairy_eggs, tags: [lactose]}
+    - {name: salade, qty: 50, unit: g, aisle: produce}
   steps:
     - Cuire les pommes de terre 20 minutes, écraser avec le lait.
     - Cuire le steak 3 minutes par face. Servir avec la salade.
 
-- id: tofu_saute_nouilles
+- id: tofu_noodle_stir_fry
   name: Tofu sauté et nouilles aux légumes
   minutes: 20
   ingredients:
-    - {name: tofu ferme, qty: 125, unit: g, aisle: frais, tags: [soja]}
-    - {name: nouilles de riz, qty: 80, unit: g, aisle: epicerie}
-    - {name: poêlée de légumes surgelée, qty: 200, unit: g, aisle: surgeles}
-    - {name: sauce soja, qty: 1, unit: cs, aisle: epicerie, tags: [soja, gluten]}
-    - {name: huile, qty: 1, unit: cs, aisle: epicerie, basic: true}
+    - {name: tofu ferme, qty: 125, unit: g, aisle: dairy_eggs, tags: [soy]}
+    - {name: nouilles de riz, qty: 80, unit: g, aisle: grocery}
+    - {name: poêlée de légumes surgelée, qty: 200, unit: g, aisle: frozen}
+    - {name: sauce soja, qty: 1, unit: tbsp, aisle: grocery, tags: [soy, gluten]}
+    - {name: huile, qty: 1, unit: tbsp, aisle: grocery, basic: true}
   steps:
     - Dorer le tofu en cubes 6 minutes. Réhydrater les nouilles.
     - Ajouter les légumes puis les nouilles, assaisonner de sauce soja.
 
-- id: gratin_courgettes_jambon
+- id: zucchini_ham_gratin
   name: Gratin rapide de courgettes au jambon
   minutes: 30
   ingredients:
-    - {name: courgette, qty: 1, unit: piece, aisle: fruits_legumes}
-    - {name: jambon blanc, qty: 2, unit: piece, aisle: frais, tags: [viande, porc]}
-    - {name: œufs, qty: 1, unit: piece, aisle: frais, tags: [oeuf]}
-    - {name: emmental râpé, qty: 30, unit: g, aisle: frais, tags: [lactose]}
-    - {name: semoule, qty: 60, unit: g, aisle: epicerie, tags: [gluten]}
+    - {name: courgette, qty: 1, unit: piece, aisle: produce}
+    - {name: jambon blanc, qty: 2, unit: piece, aisle: dairy_eggs, tags: [meat, pork]}
+    - {name: œufs, qty: 1, unit: piece, aisle: dairy_eggs, tags: [egg]}
+    - {name: emmental râpé, qty: 30, unit: g, aisle: dairy_eggs, tags: [lactose]}
+    - {name: semoule, qty: 60, unit: g, aisle: grocery, tags: [gluten]}
   steps:
     - Disposer courgette en rondelles et jambon en lanières, napper d'œuf battu et d'emmental.
     - Cuire 20 minutes à 200 °C. Servir avec la semoule.
 
-- id: salade_lentilles_oeuf
+- id: lentil_egg_salad
   name: Salade tiède de lentilles et œuf dur
   minutes: 15
   ingredients:
-    - {name: lentilles cuites en conserve, qty: 200, unit: g, aisle: epicerie}
-    - {name: œufs, qty: 2, unit: piece, aisle: frais, tags: [oeuf]}
-    - {name: échalote, qty: 1, unit: piece, aisle: fruits_legumes}
-    - {name: moutarde, qty: 1, unit: cc, aisle: epicerie, basic: true}
-    - {name: huile, qty: 1, unit: cs, aisle: epicerie, basic: true}
+    - {name: lentilles cuites en conserve, qty: 200, unit: g, aisle: grocery}
+    - {name: œufs, qty: 2, unit: piece, aisle: dairy_eggs, tags: [egg]}
+    - {name: échalote, qty: 1, unit: piece, aisle: produce}
+    - {name: moutarde, qty: 1, unit: tsp, aisle: grocery, basic: true}
+    - {name: huile, qty: 1, unit: tbsp, aisle: grocery, basic: true}
   steps:
     - Cuire les œufs 9 minutes. Réchauffer les lentilles.
     - Mélanger avec l'échalote ciselée et une vinaigrette moutarde.
 
-- id: cabillaud_riz_courgette
+- id: cod_parcel_rice
   name: Cabillaud en papillote, riz et courgette
   minutes: 25
   ingredients:
-    - {name: filet de cabillaud, qty: 1, unit: piece, aisle: boucherie_poisson, tags: [poisson]}
-    - {name: courgette, qty: 1, unit: piece, aisle: fruits_legumes}
-    - {name: citron, qty: 0.5, unit: piece, aisle: fruits_legumes}
-    - {name: riz, qty: 70, unit: g, aisle: epicerie}
-    - {name: huile d'olive, qty: 1, unit: cc, aisle: epicerie, basic: true}
+    - {name: filet de cabillaud, qty: 1, unit: piece, aisle: meat_fish, tags: [fish]}
+    - {name: courgette, qty: 1, unit: piece, aisle: produce}
+    - {name: citron, qty: 0.5, unit: piece, aisle: produce}
+    - {name: riz, qty: 70, unit: g, aisle: grocery}
+    - {name: huile d'olive, qty: 1, unit: tsp, aisle: grocery, basic: true}
   steps:
     - Fermer en papillote le poisson, la courgette en rondelles et le citron.
     - Cuire 15 minutes à 200 °C pendant que le riz cuit.
 
-- id: pates_pesto_tomates
+- id: pesto_tomato_pasta
   name: Pâtes au pesto, tomates et mozzarella
   minutes: 15
   ingredients:
-    - {name: pâtes, qty: 90, unit: g, aisle: epicerie, tags: [gluten]}
-    - {name: pesto, qty: 1, unit: cs, aisle: epicerie, tags: [lactose, fruits_a_coque]}
-    - {name: tomates cerises, qty: 100, unit: g, aisle: fruits_legumes}
-    - {name: mozzarella, qty: 60, unit: g, aisle: frais, tags: [lactose]}
+    - {name: pâtes, qty: 90, unit: g, aisle: grocery, tags: [gluten]}
+    - {name: pesto, qty: 1, unit: tbsp, aisle: grocery, tags: [lactose, tree_nuts]}
+    - {name: tomates cerises, qty: 100, unit: g, aisle: produce}
+    - {name: mozzarella, qty: 60, unit: g, aisle: dairy_eggs, tags: [lactose]}
   steps:
     - Cuire les pâtes, mélanger avec le pesto.
     - Ajouter tomates coupées et mozzarella.
@@ -224,114 +225,114 @@
   name: Shakshuka (œufs pochés à la tomate)
   minutes: 20
   ingredients:
-    - {name: tomates concassées, qty: 250, unit: g, aisle: epicerie}
-    - {name: poivron, qty: 0.5, unit: piece, aisle: fruits_legumes}
-    - {name: oignon, qty: 0.5, unit: piece, aisle: fruits_legumes}
-    - {name: œufs, qty: 2, unit: piece, aisle: frais, tags: [oeuf]}
-    - {name: pain complet, qty: 1, unit: piece, aisle: boulangerie, tags: [gluten]}
-    - {name: cumin, qty: 1, unit: cc, aisle: epicerie, basic: true}
+    - {name: tomates concassées, qty: 250, unit: g, aisle: grocery}
+    - {name: poivron, qty: 0.5, unit: piece, aisle: produce}
+    - {name: oignon, qty: 0.5, unit: piece, aisle: produce}
+    - {name: œufs, qty: 2, unit: piece, aisle: dairy_eggs, tags: [egg]}
+    - {name: pain complet, qty: 1, unit: piece, aisle: bakery, tags: [gluten]}
+    - {name: cumin, qty: 1, unit: tsp, aisle: grocery, basic: true}
   steps:
     - Faire revenir oignon et poivron, ajouter tomates et cumin, mijoter 8 minutes.
     - Creuser deux puits, casser les œufs, couvrir 6 minutes. Servir avec le pain.
 
-- id: risotto_champignons
+- id: mushroom_risotto
   name: Risotto express aux champignons
   minutes: 30
   ingredients:
-    - {name: riz arborio, qty: 80, unit: g, aisle: epicerie}
-    - {name: champignons de Paris, qty: 150, unit: g, aisle: fruits_legumes, tags: [champignons]}
-    - {name: parmesan, qty: 20, unit: g, aisle: frais, tags: [lactose]}
-    - {name: oignon, qty: 0.5, unit: piece, aisle: fruits_legumes}
-    - {name: bouillon cube, qty: 1, unit: piece, aisle: epicerie, basic: true}
+    - {name: riz arborio, qty: 80, unit: g, aisle: grocery}
+    - {name: champignons de Paris, qty: 150, unit: g, aisle: produce, tags: [mushroom]}
+    - {name: parmesan, qty: 20, unit: g, aisle: dairy_eggs, tags: [lactose]}
+    - {name: oignon, qty: 0.5, unit: piece, aisle: produce}
+    - {name: bouillon cube, qty: 1, unit: piece, aisle: grocery, basic: true}
   steps:
     - Nacrer le riz avec l'oignon, ajouter le bouillon louche par louche pendant 18 minutes.
     - Ajouter les champignons poêlés et le parmesan.
 
-- id: galette_sarrasin_complete
+- id: buckwheat_galette
   name: Galette de sarrasin œuf, épinards
   minutes: 15
   ingredients:
-    - {name: galettes de sarrasin, qty: 2, unit: piece, aisle: frais}
-    - {name: œufs, qty: 2, unit: piece, aisle: frais, tags: [oeuf]}
-    - {name: épinards frais, qty: 60, unit: g, aisle: fruits_legumes}
-    - {name: salade, qty: 40, unit: g, aisle: fruits_legumes}
+    - {name: galettes de sarrasin, qty: 2, unit: piece, aisle: dairy_eggs}
+    - {name: œufs, qty: 2, unit: piece, aisle: dairy_eggs, tags: [egg]}
+    - {name: épinards frais, qty: 60, unit: g, aisle: produce}
+    - {name: salade, qty: 40, unit: g, aisle: produce}
   steps:
     - Chauffer la galette, casser l'œuf au centre, ajouter les épinards.
     - Replier les bords quand le blanc est pris. Servir avec la salade.
 
-- id: soupe_miso_tofu
+- id: miso_tofu_soba
   name: Bouillon miso, tofu et nouilles soba
   minutes: 15
   ingredients:
-    - {name: pâte miso, qty: 1, unit: cs, aisle: epicerie, tags: [soja]}
-    - {name: tofu soyeux, qty: 100, unit: g, aisle: frais, tags: [soja]}
-    - {name: nouilles soba, qty: 70, unit: g, aisle: epicerie, tags: [gluten]}
-    - {name: épinards frais, qty: 50, unit: g, aisle: fruits_legumes}
+    - {name: pâte miso, qty: 1, unit: tbsp, aisle: grocery, tags: [soy]}
+    - {name: tofu soyeux, qty: 100, unit: g, aisle: dairy_eggs, tags: [soy]}
+    - {name: nouilles soba, qty: 70, unit: g, aisle: grocery, tags: [gluten]}
+    - {name: épinards frais, qty: 50, unit: g, aisle: produce}
   steps:
     - Cuire les soba. Délayer le miso dans 400 ml d'eau chaude (sans bouillir).
     - Ajouter tofu en cubes, épinards et nouilles.
 
-- id: poulet_curry_courgettes
+- id: chicken_curry_zucchini
   name: Poulet au curry et courgettes, semoule
   minutes: 25
   ingredients:
-    - {name: blanc de poulet, qty: 130, unit: g, aisle: boucherie_poisson, tags: [viande, volaille]}
-    - {name: courgette, qty: 1, unit: piece, aisle: fruits_legumes}
-    - {name: yaourt nature, qty: 1, unit: piece, aisle: frais, tags: [lactose]}
-    - {name: semoule, qty: 60, unit: g, aisle: epicerie, tags: [gluten]}
-    - {name: curry en poudre, qty: 1, unit: cc, aisle: epicerie, basic: true}
+    - {name: blanc de poulet, qty: 130, unit: g, aisle: meat_fish, tags: [meat, poultry]}
+    - {name: courgette, qty: 1, unit: piece, aisle: produce}
+    - {name: yaourt nature, qty: 1, unit: piece, aisle: dairy_eggs, tags: [lactose]}
+    - {name: semoule, qty: 60, unit: g, aisle: grocery, tags: [gluten]}
+    - {name: curry en poudre, qty: 1, unit: tsp, aisle: grocery, basic: true}
   steps:
     - Saisir le poulet avec le curry, ajouter la courgette en dés, cuire 10 minutes.
     - Hors du feu, lier au yaourt. Servir avec la semoule.
 
-- id: tartines_sardines_salade
+- id: sardine_toast_salad
   name: Tartines de sardines et salade composée
   minutes: 10
   ingredients:
-    - {name: sardines en conserve, qty: 1, unit: piece, aisle: epicerie, tags: [poisson]}
-    - {name: pain complet, qty: 2, unit: piece, aisle: boulangerie, tags: [gluten]}
-    - {name: tomate, qty: 1, unit: piece, aisle: fruits_legumes}
-    - {name: salade, qty: 50, unit: g, aisle: fruits_legumes}
-    - {name: citron, qty: 0.5, unit: piece, aisle: fruits_legumes}
+    - {name: sardines en conserve, qty: 1, unit: piece, aisle: grocery, tags: [fish]}
+    - {name: pain complet, qty: 2, unit: piece, aisle: bakery, tags: [gluten]}
+    - {name: tomate, qty: 1, unit: piece, aisle: produce}
+    - {name: salade, qty: 50, unit: g, aisle: produce}
+    - {name: citron, qty: 0.5, unit: piece, aisle: produce}
   steps:
     - Écraser les sardines au citron, tartiner sur le pain grillé.
     - Servir avec tomate et salade.
 
-- id: patates_douces_farcies
+- id: stuffed_sweet_potatoes
   name: Patates douces farcies haricots noirs
   minutes: 30
   ingredients:
-    - {name: patate douce, qty: 250, unit: g, aisle: fruits_legumes}
-    - {name: haricots noirs en conserve, qty: 150, unit: g, aisle: epicerie}
-    - {name: avocat, qty: 0.5, unit: piece, aisle: fruits_legumes}
-    - {name: maïs en conserve, qty: 50, unit: g, aisle: epicerie}
-    - {name: épices chili, qty: 1, unit: cc, aisle: epicerie, basic: true}
+    - {name: patate douce, qty: 250, unit: g, aisle: produce}
+    - {name: haricots noirs en conserve, qty: 150, unit: g, aisle: grocery}
+    - {name: avocat, qty: 0.5, unit: piece, aisle: produce}
+    - {name: maïs en conserve, qty: 50, unit: g, aisle: grocery}
+    - {name: épices chili, qty: 1, unit: tsp, aisle: grocery, basic: true}
   steps:
     - Cuire la patate douce coupée en deux 25 minutes à 200 °C (ou 8 minutes au micro-ondes).
     - Garnir de haricots épicés, maïs et avocat.
 
-- id: frittata_legumes
+- id: vegetable_frittata
   name: Frittata aux légumes du placard
   minutes: 20
   ingredients:
-    - {name: œufs, qty: 3, unit: piece, aisle: frais, tags: [oeuf]}
-    - {name: poêlée de légumes surgelée, qty: 150, unit: g, aisle: surgeles}
-    - {name: emmental râpé, qty: 20, unit: g, aisle: frais, tags: [lactose]}
-    - {name: salade, qty: 40, unit: g, aisle: fruits_legumes}
-    - {name: huile, qty: 1, unit: cc, aisle: epicerie, basic: true}
+    - {name: œufs, qty: 3, unit: piece, aisle: dairy_eggs, tags: [egg]}
+    - {name: poêlée de légumes surgelée, qty: 150, unit: g, aisle: frozen}
+    - {name: emmental râpé, qty: 20, unit: g, aisle: dairy_eggs, tags: [lactose]}
+    - {name: salade, qty: 40, unit: g, aisle: produce}
+    - {name: huile, qty: 1, unit: tsp, aisle: grocery, basic: true}
   steps:
     - Faire revenir les légumes, verser les œufs battus et le fromage.
     - Cuire à couvert 8 minutes à feu doux. Servir avec la salade.
 
-- id: semoule_legumes_pois_chiches
+- id: chickpea_couscous
   name: Couscous express légumes et pois chiches
   minutes: 20
   ingredients:
-    - {name: semoule, qty: 70, unit: g, aisle: epicerie, tags: [gluten]}
-    - {name: pois chiches en conserve, qty: 120, unit: g, aisle: epicerie}
-    - {name: courgette, qty: 1, unit: piece, aisle: fruits_legumes}
-    - {name: carotte, qty: 1, unit: piece, aisle: fruits_legumes}
-    - {name: ras el hanout, qty: 1, unit: cc, aisle: epicerie, basic: true}
+    - {name: semoule, qty: 70, unit: g, aisle: grocery, tags: [gluten]}
+    - {name: pois chiches en conserve, qty: 120, unit: g, aisle: grocery}
+    - {name: courgette, qty: 1, unit: piece, aisle: produce}
+    - {name: carotte, qty: 1, unit: piece, aisle: produce}
+    - {name: ras el hanout, qty: 1, unit: tsp, aisle: grocery, basic: true}
   steps:
     - Cuire carotte et courgette en dés 12 minutes avec les épices et 150 ml d'eau.
     - Ajouter les pois chiches. Gonfler la semoule à l'eau bouillante.

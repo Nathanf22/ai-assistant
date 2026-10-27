@@ -7,7 +7,7 @@ import pytest
 from coach import agent, jobs, services, timeutil
 from coach.db import Database
 
-# Lundi 2 novembre 2026, 09h00 heure de Paris : point fixe pour tous les tests.
+# Monday 2 November 2026, 09:00 Paris time: fixed point in time for every test.
 FROZEN_DAY = date(2026, 11, 2)
 
 
@@ -51,7 +51,7 @@ async def onboarded_user(db):
         await services.record_consent(s, user)
         await services.update_profile(
             s, user, goal_text="3 séances par semaine et des dîners plus équilibrés",
-            sessions_per_week=3, level="debutant", equipment=[], slots=USUAL_SLOTS,
+            sessions_per_week=3, level="beginner", equipment=[], slots=USUAL_SLOTS,
             food_exclusions=["porc"], food_dislikes=["champignons"], dinners_per_week=5,
         )
         await services.finish_onboarding(s, user)

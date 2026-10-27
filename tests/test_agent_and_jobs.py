@@ -1,4 +1,4 @@
-"""Tests de l'agent (client Claude simulé) et du planificateur (bot Telegram simulé)."""
+"""Tests for the agent (fake Claude client) and the scheduler (fake Telegram bot)."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ from coach.metrics import compute, report
 
 from .conftest import FROZEN_DAY, USUAL_SLOTS
 
-# --- Client Claude simulé ---------------------------------------------------------------
+# --- Fake Claude client -----------------------------------------------------------------
 
 
 @dataclass
@@ -63,7 +63,7 @@ async def test_agent_onboarding_flow_uses_tools_and_creates_plan(db):
     client = FakeClient([
         response(Block("text", "Je note."), tool(
             "update_profile", goal_text="bouger 3 fois par semaine", sessions_per_week=3,
-            level="debutant", slots=USUAL_SLOTS, dinners_per_week=4)),
+            level="beginner", slots=USUAL_SLOTS, dinners_per_week=4)),
         response(tool("update_preferences", add_exclusions=["porc"], add_dislikes=["champignons"])),
         response(tool("finish_onboarding")),
         response(Block("text", "C'est parti : ce soir, 30 minutes à 18h30.")),
@@ -79,12 +79,12 @@ async def test_agent_onboarding_flow_uses_tools_and_creates_plan(db):
         sessions = await services.sessions_between(s, user, FROZEN_DAY, FROZEN_DAY + timedelta(days=7))
         assert sessions
 
-        # Le prompt système et les outils sont mis en cache, le contexte du profil non.
+        # The system prompt and the tools are cached, the profile context is not.
         first = client.messages.calls[0]
         assert first["system"][0]["cache_control"] == {"type": "ephemeral"}
         assert "cache_control" not in first["system"][1]
         assert first["tools"][-1]["cache_control"] == {"type": "ephemeral"}
-        # Le résultat d'outil est renvoyé au modèle.
+        # The tool result is sent back to the model.
         last = client.messages.calls[-1]["messages"][-1]
         assert last["role"] == "user" and last["content"][0]["type"] == "tool_result"
         assert "session_id=" in last["content"][0]["content"]
@@ -126,7 +126,7 @@ def test_tool_schemas_are_well_formed():
         assert t["description"] and t["input_schema"]["type"] == "object"
 
 
-# --- Planificateur ------------------------------------------------------------------------
+# --- Scheduler ----------------------------------------------------------------------------
 
 
 class FakeBot:
@@ -198,7 +198,7 @@ async def test_metrics_report_runs(db, onboarded_user):
         user = await s.get(User, onboarded_user)
         await services.create_week_plan(s, user, FROZEN_DAY)
         text = report(await compute(s))
-    assert "Activation" in text and "Rétention S4" in text
+    assert "Activation" in text and "Retention W4" in text
 
 
 async def test_blocked_user_is_marked_and_skipped(db, onboarded_user, monkeypatch):
@@ -214,12 +214,12 @@ async def test_blocked_user_is_marked_and_skipped(db, onboarded_user, monkeypatc
     async with db.session() as s:
         user = await s.get(User, onboarded_user)
         assert user.blocked_at is not None
-        assert user.last_brief_on == FROZEN_DAY  # marqueur conservé : pas de renvoi
-        assert await services.get_week_plan(s, user, FROZEN_DAY) is not None  # planning conservé
+        assert user.last_brief_on == FROZEN_DAY  # marker kept: no resend
+        assert await services.get_week_plan(s, user, FROZEN_DAY) is not None  # plan kept
 
     sent = FakeBot()
     ctx.bot = sent
-    await jobs.tick(ctx)  # utilisateur ignoré tant qu'il n'a pas réécrit
+    await jobs.tick(ctx)  # user skipped until they write again
     assert sent.sent == []
 
 

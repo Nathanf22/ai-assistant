@@ -1,7 +1,7 @@
-"""Planification pure (sans base de données) : créneaux, dîners, liste de courses.
+"""Pure planning (no database): session slots, dinners, grocery list.
 
-Toutes les fonctions sont déterministes pour une même graine, ce qui les rend testables
-et reproductibles dans le journal du pilote.
+Every function is deterministic for a given seed, which makes it testable and reproducible
+in the pilot's event log.
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ class Slot:
 
 
 def week_start_of(d: date) -> date:
-    """Lundi de la semaine contenant `d`."""
+    """Monday of the week containing `d`."""
     return d - timedelta(days=d.weekday())
 
 
@@ -34,16 +34,16 @@ def next_week_start(d: date) -> date:
     return week_start_of(d) + timedelta(days=7)
 
 
-# --- Créneaux de séance --------------------------------------------------------
+# --- Session slots -------------------------------------------------------------
 
 
 def candidate_slots(week_start: date, usual: list[dict], constraints: list[dict]) -> list[Slot]:
-    """Créneaux habituels de la semaine, après application des contraintes déclarées.
+    """The week's usual slots, after applying the constraints the user reported.
 
-    `usual` : [{"day": 0..6, "time": "18:30", "minutes": 30}]
-    `constraints` : [{"date": "2026-11-05", "available": false}]
-                    [{"date": "...", "max_minutes": 20}], [{"date": "...", "time": "20:00"}]
-                    [{"date": "...", "available": true, "time": "10:00", "minutes": 45}] (créneau ajouté)
+    `usual`: [{"day": 0..6, "time": "18:30", "minutes": 30}]
+    `constraints`: [{"date": "2026-11-05", "available": false}]
+                   [{"date": "...", "max_minutes": 20}], [{"date": "...", "time": "20:00"}]
+                   [{"date": "...", "available": true, "time": "10:00", "minutes": 45}] (extra slot)
     """
     by_date: dict[date, dict] = {}
     for c in constraints:
@@ -68,7 +68,7 @@ def candidate_slots(week_start: date, usual: list[dict], constraints: list[dict]
         if in_week and c.get("available") is True and c.get("time"):
             slots.append(Slot(d, c["time"], int(c.get("minutes", 30))))
 
-    # Un seul créneau par jour : le plus long.
+    # One slot per day at most: keep the longest.
     best: dict[date, Slot] = {}
     for s in slots:
         if s.day not in best or s.minutes > best[s.day].minutes:
@@ -77,7 +77,7 @@ def candidate_slots(week_start: date, usual: list[dict], constraints: list[dict]
 
 
 def choose_sessions(slots: list[Slot], count: int) -> list[Slot]:
-    """Choisit `count` créneaux en espaçant au mieux les séances (pas deux jours de suite si possible)."""
+    """Pick `count` slots, spreading sessions as much as possible (no back-to-back days if avoidable)."""
     if count <= 0 or not slots:
         return []
     if len(slots) <= count:
@@ -90,13 +90,13 @@ def choose_sessions(slots: list[Slot], count: int) -> list[Slot]:
     return list(max(itertools.combinations(slots, count), key=score))
 
 
-# --- Dîners -------------------------------------------------------------------
+# --- Dinners ---------------------------------------------------------------------
 
-DINNER_DAY_ORDER = (0, 1, 2, 3, 4, 6, 5)  # lundi → vendredi, puis dimanche, puis samedi
+DINNER_DAY_ORDER = (0, 1, 2, 3, 4, 6, 5)  # Monday to Friday, then Sunday, then Saturday
 
 
 def allowed_recipes(lib: Library, exclusions: list[str], dislikes: list[str]) -> list[Recipe]:
-    """Recettes compatibles. Les exclusions sont strictes ; les aversions sont levées si nécessaire."""
+    """Compatible recipes. Exclusions are strict; dislikes are dropped if too few recipes remain."""
     safe = [r for r in lib.recipes.values() if not recipe_violates(r, exclusions)]
     liked = [r for r in safe if not recipe_violates(r, dislikes)]
     return liked if len(liked) >= 3 else safe
@@ -113,8 +113,8 @@ def choose_dinners(
     avoid_recipes: set[str] = frozenset(),
     from_day: date | None = None,
 ) -> list[tuple[date, str]]:
-    """Choisit les dîners de la semaine. Avec `from_day`, seuls les jours restants sont proposés
-    (une personne qui commence un samedi reçoit quand même ses dîners du week-end)."""
+    """Choose the week's dinners. With `from_day`, only the remaining days are planned
+    (someone who starts on a Saturday still gets their weekend dinners)."""
     pool = allowed_recipes(lib, exclusions, dislikes)
     if not pool:
         return []
@@ -135,7 +135,7 @@ def choose_dinners(
         choice = next((r for r in source if r.id not in used), None)
         if choice is None:
             choice = next((r for r in fresh if r.id not in used), None)
-        if choice is None:  # bibliothèque épuisée : on autorise une répétition
+        if choice is None:  # library exhausted: allow a repeat
             choice = fresh[len(plan) % len(fresh)]
         used.add(choice.id)
         plan.append((d, choice.id))
@@ -149,7 +149,7 @@ def swap_candidates(
     return [r for r in pool if r.id != current_id and r.id not in taken]
 
 
-# --- Liste de courses ------------------------------------------------------------
+# --- Grocery list ------------------------------------------------------------------
 
 
 def _round_qty(qty: float, unit: str) -> float:
@@ -160,6 +160,7 @@ def _round_qty(qty: float, unit: str) -> float:
     return round(qty, 1)
 
 
+# French words that start a compound food name ("lait de coco" is not "lait").
 _COMPOUND_LINKS = {"de", "d'", "au", "aux", "a", "en"}
 
 
@@ -169,11 +170,11 @@ def _tokens(text: str) -> list[str]:
 
 
 def in_pantry(name: str, pantry: list[str]) -> bool:
-    """Vrai si un produit en stock couvre l'ingrédient.
+    """True if an item in stock covers the ingredient.
 
-    Le produit doit être le début de l'ingrédient, mot par mot : « riz » couvre « riz basmati »
-    mais pas « nouilles de riz » ; « lait » ne couvre pas « lait de coco » (nom composé) ;
-    « tomates cerises » ne couvre pas « tomate ». Singulier et pluriel sont équivalents.
+    The stock item must be the beginning of the ingredient name, word by word: "riz" covers
+    "riz basmati" but not "nouilles de riz"; "lait" does not cover "lait de coco" (compound
+    name); "tomates cerises" does not cover "tomate". Singular and plural are equivalent.
     """
     ingredient = _tokens(name)
     for item in pantry:
@@ -187,7 +188,7 @@ def in_pantry(name: str, pantry: list[str]) -> bool:
 
 
 def grocery_list(lib: Library, meals: list[tuple[str, int]], pantry: list[str]) -> list[dict]:
-    """Agrège les ingrédients des repas, retire les basiques et le stock, regroupe par rayon (US8)."""
+    """Aggregate the meals' ingredients, drop staples and stock, group by aisle (US8)."""
     totals: dict[tuple[str, str], dict] = {}
     for recipe_id, servings in meals:
         recipe = lib.recipe(recipe_id)
@@ -210,15 +211,19 @@ def grocery_list(lib: Library, meals: list[tuple[str, int]], pantry: list[str]) 
     return items
 
 
+# Unit id -> label shown to users (French).
+UNIT_LABELS = {"tbsp": "c. à s.", "tsp": "c. à c."}
+
+
 def _fmt_qty(qty: float, unit: str) -> str:
     q = int(qty) if float(qty).is_integer() else qty
     if unit == "piece":
         return f"× {q}"
-    labels = {"cs": "c. à s.", "cc": "c. à c."}
-    return f"{q} {labels.get(unit, unit)}"
+    return f"{q} {UNIT_LABELS.get(unit, unit)}"
 
 
 def format_grocery(items: list[dict]) -> str:
+    """User-facing grocery list (French)."""
     if not items:
         return "Rien à acheter : tu as déjà tout."
     by_aisle: dict[str, list[dict]] = defaultdict(list)
@@ -233,13 +238,13 @@ def format_grocery(items: list[dict]) -> str:
     return "\n".join(lines)
 
 
-# --- « Ce soir j'ai 20 minutes et ça dans le frigo » (US11) ----------------------------
+# --- "Tonight I have 20 minutes and this in the fridge" (US11) ------------------------
 
 
 def quick_dinner(
     lib: Library, have: list[str], exclusions: list[str], dislikes: list[str], max_minutes: int | None
 ) -> tuple[Recipe | None, list[str]]:
-    """Recette la plus faisable avec ce qu'on a. Renvoie la recette et les ingrédients manquants."""
+    """The most feasible recipe with what the user has. Returns the recipe and missing ingredients."""
     pool = allowed_recipes(lib, exclusions, dislikes)
     if max_minutes:
         pool = [r for r in pool if r.minutes <= max_minutes] or pool
@@ -257,6 +262,7 @@ def quick_dinner(
 
 
 def format_recipe(recipe: Recipe, servings: int = 1) -> str:
+    """User-facing recipe (French)."""
     lines = [f"{recipe.name} · {recipe.minutes} min", ""]
     for ing in recipe.ingredients:
         if ing.basic:

@@ -1,4 +1,4 @@
-"""Point d'entrée : `coach-bot` ou `python -m coach.main`."""
+"""Entry point: `coach-bot` or `python -m coach.main`."""
 
 from __future__ import annotations
 
@@ -13,17 +13,17 @@ from coach.library import get_library
 
 def run() -> None:
     logging.basicConfig(format="%(asctime)s %(levelname)s %(name)s : %(message)s", level=logging.INFO)
-    logging.getLogger("httpx").setLevel(logging.WARNING)  # n'affiche pas le jeton du bot dans les URL
+    logging.getLogger("httpx").setLevel(logging.WARNING)  # keeps the bot token out of logged URLs
     settings = get_settings()
     if not settings.anthropic_api_key:
-        raise SystemExit("ANTHROPIC_API_KEY manquant (voir .env.example).")
+        raise SystemExit("ANTHROPIC_API_KEY is missing (see .env.example).")
 
     lib = get_library()
-    logging.info("Bibliothèque chargée : %d exercices, %d recettes", len(lib.exercises), len(lib.recipes))
+    logging.info("Library loaded: %d exercises, %d recipes", len(lib.exercises), len(lib.recipes))
 
-    db = Database()  # schéma créé au démarrage du bot (post_init)
+    db = Database()  # schema is created when the bot starts (post_init)
     app = build_application(db, Agent())
-    logging.info("Bot démarré (polling), modèle %s", settings.llm_model)
+    logging.info("Bot started (polling), model %s", settings.llm_model)
     app.run_polling(allowed_updates=["message", "callback_query"])
 
 

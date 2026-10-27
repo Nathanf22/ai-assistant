@@ -1,13 +1,13 @@
-"""Règles de progression déterministes (US16, US18).
+"""Deterministic progression rules (US16, US18).
 
-Le LLM ne décide jamais de la charge : il la reçoit de ces règles.
+The LLM never decides the training load: it receives it from these rules.
 
-- La charge va de 1 (très léger) à 10.
-- Deux retours « dur » d'affilée à la charge actuelle → charge − 1.
-- Deux retours « facile » d'affilée à la charge actuelle → charge + 1.
-- Une séance sautée ne change rien.
-- Après 10 jours ou plus sans séance faite → charge − 2 (reprise douce).
-- Garde-fou actif → aucune hausse automatique.
+- Load ranges from 1 (very light) to 10.
+- Two "hard" feedbacks in a row at the current load -> load - 1.
+- Two "easy" feedbacks in a row at the current load -> load + 1.
+- A skipped session changes nothing.
+- 10 days or more without a completed session -> load - 2 (gentle comeback).
+- Safety hold active -> no automatic increase.
 """
 
 from __future__ import annotations
@@ -40,9 +40,9 @@ def clamp(value: int) -> int:
 
 
 def after_feedback(current: int, history: list[DoneSession], safety_hold: bool = False) -> LoadDecision:
-    """Charge à appliquer après un nouveau retour. `history` est trié du plus ancien au plus récent."""
-    # Seules comptent les dernières séances, toutes faites à la charge actuelle : une séance
-    # d'avant le dernier changement interrompt la série (pas d'aller-retour de la charge).
+    """Load to apply after a new feedback. `history` is sorted oldest first."""
+    # Only the latest sessions count, and all of them must have been done at the current load:
+    # a session from before the last change breaks the streak (no back-and-forth of the load).
     recent = [s for s in history if s.feedback][-STREAK_TO_ADJUST:]
     if len(recent) < STREAK_TO_ADJUST or any(s.load_level != current for s in recent):
         return LoadDecision(current, False, "stable")
@@ -58,10 +58,10 @@ def after_feedback(current: int, history: list[DoneSession], safety_hold: bool =
 
 
 def before_planning(current: int, last_done: DoneSession | None, today: date) -> LoadDecision:
-    """Charge à utiliser au moment de planifier, en tenant compte d'une pause éventuelle.
+    """Load to use when planning, taking a possible break into account.
 
-    La baisse se calcule depuis la charge de la dernière séance faite : replanifier plusieurs
-    fois pendant la même pause ne fait pas baisser la charge à chaque fois.
+    The drop is computed from the load of the last completed session, so replanning several
+    times during the same break does not lower the load again each time.
     """
     if last_done is not None and (today - last_done.day).days >= BREAK_DAYS:
         target = clamp(last_done.load_level - BREAK_DROP)
@@ -71,7 +71,7 @@ def before_planning(current: int, last_done: DoneSession | None, today: date) ->
 
 
 def volume(load: int) -> tuple[int, float]:
-    """(nombre de séries, multiplicateur de volume) pour une charge donnée. Charge 5 → ×1,0."""
+    """(number of sets, volume multiplier) for a given load. Load 5 -> x1.0."""
     load = clamp(load)
     sets = 2 if load <= 3 else 3 if load <= 7 else 4
     return sets, round(0.6 + 0.08 * load, 2)

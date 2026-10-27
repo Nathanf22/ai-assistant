@@ -1,6 +1,7 @@
-"""Opérations métier sur la base : utilisées par l'agent, le bot et le planificateur.
+"""Business operations on the database, shared by the agent, the bot and the scheduler.
 
-Chaque changement significatif est journalisé dans `event_log` (observabilité du pilote).
+Every significant change is recorded in `event_log` (pilot observability).
+`ServiceError` messages can be shown to users as-is, so they stay in French.
 """
 
 from __future__ import annotations
@@ -27,14 +28,14 @@ HISTORY_TURNS = 12
 
 
 class ServiceError(ValueError):
-    """Erreur métier explicable à l'utilisateur ou à l'agent."""
+    """Business error whose message can be shown to the user or the agent (French)."""
 
 
 def _utcnow() -> datetime:
     return datetime.now(UTC)
 
 
-# --- Utilisateurs ----------------------------------------------------------------
+# --- Users -----------------------------------------------------------------------
 
 
 async def get_user(s: AsyncSession, telegram_id: int) -> User | None:
@@ -73,7 +74,7 @@ def _clean_slots(slots: list[dict]) -> list[dict]:
 
 
 async def update_profile(s: AsyncSession, user: User, **fields) -> list[str]:
-    """Met à jour le profil avec validation. Renvoie la liste des champs modifiés."""
+    """Update the profile with validation. Returns the list of changed fields."""
     changed: list[str] = []
     if "goal_text" in fields and fields["goal_text"]:
         user.goal_text = str(fields["goal_text"])[:500]
@@ -90,7 +91,7 @@ async def update_profile(s: AsyncSession, user: User, **fields) -> list[str]:
         user.level = fields["level"]
         changed.append("level")
     if fields.get("equipment") is not None:
-        eq = [e for e in _clean_list(fields["equipment"]) if e in EQUIPMENT and e != "aucun"]
+        eq = [e for e in _clean_list(fields["equipment"]) if e in EQUIPMENT and e != "none"]
         user.equipment = eq
         changed.append("equipment")
     if fields.get("slots") is not None:
@@ -141,7 +142,7 @@ async def record_consent(s: AsyncSession, user: User) -> None:
         log_event(s, user.id, "consent_given")
 
 
-# --- Historique de conversation -----------------------------------------------------
+# --- Conversation history ----------------------------------------------------------
 
 
 async def add_chat(s: AsyncSession, user: User, role: str, content: str) -> None:
@@ -158,7 +159,7 @@ async def recent_chat(s: AsyncSession, user: User, limit: int = HISTORY_TURNS) -
     return list(reversed(rows.all()))
 
 
-# --- Séances ----------------------------------------------------------------------
+# --- Sessions ----------------------------------------------------------------------
 
 
 async def done_history(s: AsyncSession, user: User) -> list[progression.DoneSession]:
@@ -172,7 +173,7 @@ async def done_history(s: AsyncSession, user: User) -> list[progression.DoneSess
 
 def session_request(user: User, minutes: int, focus: str, seed: str) -> SessionRequest:
     if user.safety_hold:
-        focus = "mobilite"
+        focus = "mobility"
     return SessionRequest(
         minutes=minutes,
         focus=focus,
@@ -191,7 +192,7 @@ def fill_session(lib: Library, user: User, ps: PlannedSession) -> None:
     ps.exercises = build_session(lib, req)
     ps.load_level = user.load_level
     if user.safety_hold:
-        ps.focus = "mobilite"
+        ps.focus = "mobility"
 
 
 async def get_session(s: AsyncSession, user: User, session_id: int) -> PlannedSession:
@@ -232,7 +233,7 @@ async def reschedule(
     new_day: date | None = None,
     new_time: str | None = None,
 ) -> PlannedSession:
-    """Adapte une séance à un imprévu : raccourcir, décaler ou annuler (F7, US10)."""
+    """Adapt a session to a last-minute change: shorten, postpone or cancel (F7, US10)."""
     ps = await get_session(s, user, session_id)
     if ps.status != "planned":
         raise ServiceError("Cette séance n'est plus prévue.")
@@ -273,7 +274,7 @@ class FeedbackOutcome:
 async def record_feedback(
     s: AsyncSession, user: User, session_id: int, feedback: str, note: str = ""
 ) -> FeedbackOutcome:
-    """Enregistre un retour (facile / ok / dur) et applique les règles de progression (F5, F6)."""
+    """Record a feedback (easy / ok / hard) and apply the progression rules (F5, F6)."""
     if feedback not in ("easy", "ok", "hard"):
         raise ServiceError("Retour attendu : easy, ok ou hard.")
     ps = await get_session(s, user, session_id)
@@ -306,7 +307,7 @@ async def skip_session(s: AsyncSession, user: User, session_id: int) -> PlannedS
 
 
 async def next_free_day(s: AsyncSession, user: User, after: date) -> date | None:
-    """Prochain jour de la semaine en cours, après `after`, sans séance déjà prévue."""
+    """Next day of the current week, after `after`, with no session already planned."""
     week_end = planner.week_start_of(after) + timedelta(days=7)
     taken = {p.day for p in await sessions_between(s, user, after, week_end) if p.status == "planned"}
     d = after + timedelta(days=1)
@@ -317,7 +318,7 @@ async def next_free_day(s: AsyncSession, user: User, after: date) -> date | None
     return None
 
 
-# --- Planning hebdomadaire ----------------------------------------------------------
+# --- Weekly planning ---------------------------------------------------------------
 
 
 async def get_week_plan(s: AsyncSession, user: User, week_start: date) -> WeekPlan | None:
@@ -344,7 +345,7 @@ async def create_week_plan(
     constraints: list[dict] | None = None,
     constraints_text: str = "",
 ) -> WeekPlan:
-    """Crée (ou recrée) le planning d'une semaine : séances, dîners, liste de courses (F2, US5–US8)."""
+    """Create (or recreate) a week's plan: sessions, dinners, grocery list (F2, US5-US8)."""
     if not user.slots:
         raise ServiceError("Aucun créneau habituel : demander d'abord les disponibilités.")
     lib = get_library()
@@ -352,7 +353,7 @@ async def create_week_plan(
     week_end = week_start + timedelta(days=7)
     first_day = max(week_start, today())
 
-    # Reprise après une pause (US18).
+    # Comeback after a break (US18).
     history = await done_history(s, user)
     last_done = history[-1] if history else None
     comeback = progression.before_planning(user.load_level, last_done, today())
@@ -360,7 +361,7 @@ async def create_week_plan(
         user.load_level = comeback.load
         log_event(s, user.id, "load_comeback", load=comeback.load)
 
-    # Remplacer un éventuel planning existant : on ne touche qu'aux éléments encore à venir.
+    # Replace any existing plan, touching only items that are still ahead.
     old = await get_week_plan(s, user, week_start)
     previous_recipes: set[str] = set()
     prev_meals = await meals_between(s, user, week_start - timedelta(days=7), week_start)
@@ -425,7 +426,7 @@ async def refresh_grocery(s: AsyncSession, user: User, plan: WeekPlan) -> list[d
 
 
 async def swap_meal(s: AsyncSession, user: User, day: date, recipe_id: str | None = None) -> PlannedMeal:
-    """Remplace le dîner d'un jour (US7). Sans `recipe_id`, choisit une alternative compatible."""
+    """Replace a day's dinner (US7). Without `recipe_id`, pick a compatible alternative."""
     lib = get_library()
     meal = await s.scalar(select(PlannedMeal).where(PlannedMeal.user_id == user.id, PlannedMeal.day == day))
     if meal is None:
@@ -454,7 +455,7 @@ async def swap_meal(s: AsyncSession, user: User, day: date, recipe_id: str | Non
 
 
 async def enforce_exclusions(s: AsyncSession, user: User) -> int:
-    """Après l'ajout d'une exclusion, remplace tout dîner à venir qui la contient (garantie US3)."""
+    """After an exclusion is added, replace every upcoming dinner that contains it (US3 guarantee)."""
     lib = get_library()
     swapped = 0
     rows = await s.scalars(
@@ -471,11 +472,11 @@ async def enforce_exclusions(s: AsyncSession, user: User) -> int:
     return swapped
 
 
-# --- Demandes ponctuelles -------------------------------------------------------------
+# --- One-off requests ------------------------------------------------------------------
 
 
 async def quick_session(s: AsyncSession, user: User, minutes: int, day: date | None = None) -> PlannedSession:
-    """Séance immédiate de la durée disponible (F10, US11). Remplace une séance prévue le même jour."""
+    """Immediate session for the time available (F10, US11). Replaces a session planned that day."""
     day = day or today()
     lib = get_library()
     same_day = [p for p in await sessions_between(s, user, day, day + timedelta(days=1)) if p.status == "planned"]
@@ -494,7 +495,7 @@ async def quick_session(s: AsyncSession, user: User, minutes: int, day: date | N
     return ps
 
 
-# --- Garde-fou ----------------------------------------------------------------------
+# --- Safety guardrail -----------------------------------------------------------------
 
 
 async def set_safety_hold(s: AsyncSession, user: User, category: str) -> None:
@@ -520,7 +521,7 @@ async def lift_safety_hold(s: AsyncSession, user: User) -> None:
         log_event(s, user.id, "safety_hold_lifted")
 
 
-# --- Bilan --------------------------------------------------------------------------
+# --- Weekly summary -------------------------------------------------------------------
 
 
 @dataclass
@@ -545,7 +546,7 @@ async def week_summary(s: AsyncSession, user: User, week_start: date) -> WeekSum
     )
 
 
-# --- Données personnelles (US21) -------------------------------------------------------
+# --- Personal data (US21) ---------------------------------------------------------------
 
 
 async def export_user_data(s: AsyncSession, user: User) -> dict:
@@ -563,25 +564,25 @@ async def export_user_data(s: AsyncSession, user: User) -> dict:
         return [{c.name: iso(getattr(r, c.name)) for c in table.columns} for r in items]
 
     return {
-        "profil": profile,
-        "plannings": rows(plans.all(), WeekPlan.__table__),
-        "seances": rows(sessions.all(), PlannedSession.__table__),
-        "diners": rows(meals.all(), PlannedMeal.__table__),
+        "profile": profile,
+        "week_plans": rows(plans.all(), WeekPlan.__table__),
+        "sessions": rows(sessions.all(), PlannedSession.__table__),
+        "dinners": rows(meals.all(), PlannedMeal.__table__),
         "conversation": rows(chats.all(), ChatMessage.__table__),
-        "journal": rows(events.all(), EventLog.__table__),
+        "events": rows(events.all(), EventLog.__table__),
     }
 
 
 async def delete_user(s: AsyncSession, user: User) -> None:
-    """Suppression immédiate et complète des données de l'utilisateur."""
+    """Immediate and complete deletion of the user's data."""
     uid = user.id
     for model in (ChatMessage, PlannedMeal, PlannedSession, WeekPlan, EventLog):
         await s.execute(delete(model).where(model.user_id == uid))
     await s.delete(user)
-    log_event(s, None, "user_deleted")  # sans identifiant : seul le compteur reste
+    log_event(s, None, "user_deleted")  # no user id: only the count remains
 
 
-# --- Mise en forme --------------------------------------------------------------------
+# --- User-facing rendering (French) ------------------------------------------------------
 
 
 def describe_session(ps: PlannedSession, ref: date | None = None) -> str:

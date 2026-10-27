@@ -1,49 +1,52 @@
-# Assistant sport & repas
+# Sport & meal assistant
 
-Assistant IA sur Telegram qui transforme des objectifs de sport et d'alimentation en un plan quotidien réaliste : séances guidées, dîners, liste de courses, et ajustement après chaque retour. MVP du pilote de 8 semaines à l'INP.
+A Telegram AI assistant that turns sport and nutrition goals into a realistic daily plan: guided workouts, dinners, a grocery list, and adjustments after every feedback. MVP for an 8-week pilot at INP Grenoble.
 
-La boucle couverte : **planifier → faire → donner un retour → ajuster**.
+The loop it covers: **plan → do → give feedback → adjust**.
 
-## Principe
+The codebase is in English. Everything pilot participants see (bot messages, exercises, recipes, commands) is in French. See `.claude/rules/language.md`.
 
-Claude comprend les messages et formule les réponses, mais ne décide de rien d'important :
+## How it works
 
-- les **séances** viennent d'une bibliothèque d'exercices contrôlée (`coach/library/exercises.yaml`) ;
-- les **dîners** viennent d'une bibliothèque de recettes contrôlée (`coach/library/recipes.yaml`) ;
-- la **difficulté** est calculée par des règles déterministes (`coach/progression.py`) ;
-- un **garde-fou** (`coach/safety.py`) intercepte douleur, urgence, troubles alimentaires et situations médicales *avant* tout appel au LLM, met la progression en pause et renvoie vers un professionnel.
+Claude understands messages and phrases the answers, but makes no important decision itself:
+
+- **workouts** come from a controlled exercise library (`coach/library/exercises.yaml`);
+- **dinners** come from a controlled recipe library (`coach/library/recipes.yaml`);
+- **difficulty** is computed by deterministic rules (`coach/progression.py`);
+- a **safety guardrail** (`coach/safety.py`) catches pain, emergencies, eating disorders and medical situations *before* any LLM call, pauses progression and points to a professional.
 
 ```
-Telegram ──► bot.py ──► safety.py ──► agent.py (Claude + outils) ──► services.py
+Telegram ──► bot.py ──► safety.py ──► agent.py (Claude + tools) ──► services.py
                 │                                                     │
-             jobs.py (brief, retour, planning du dimanche)          planner.py · workouts.py · progression.py
+             jobs.py (brief, feedback, Sunday planning)             planner.py · workouts.py · progression.py
                                                                       │
                                                               db.py (SQLite / PostgreSQL)
 ```
 
-| Module | Rôle |
+| Module | Role |
 | --- | --- |
-| `bot.py` | Commandes, messages libres, boutons en un tap |
-| `jobs.py` | Tâche chaque minute : brief du matin, demande de retour, planning et bilan du dimanche, questionnaire de fin de pilote |
-| `agent.py` | Boucle tool-use avec Claude, prompt système mis en cache |
-| `services.py` | Opérations métier en base, journalisées dans `event_log` |
-| `planner.py` | Choix des créneaux, des dîners, liste de courses (fonctions pures) |
-| `workouts.py` | Construction d'une séance adaptée à la durée, au matériel et à la charge |
-| `progression.py` | Règles de charge (1 à 10) |
-| `safety.py` | Détection des messages à risque |
-| `metrics.py` | Tableau de bord du pilote (`/stats`, `coach-metrics`) |
+| `bot.py` | Commands, free-text messages, one-tap buttons |
+| `jobs.py` | Runs every minute: morning brief, feedback request, Sunday planning and summary, end-of-pilot survey |
+| `agent.py` | Tool-use loop with Claude, cached system prompt |
+| `services.py` | Business operations on the database, recorded in `event_log` |
+| `planner.py` | Slot selection, dinners, grocery list (pure functions) |
+| `workouts.py` | Builds a session for the available time, equipment and load |
+| `progression.py` | Load rules (1 to 10) |
+| `safety.py` | Detection of risky messages |
+| `metrics.py` | Pilot dashboard (`/stats`, `coach-metrics`) |
+| `messages.py` | Fixed user-facing messages (French) |
 
-## Démarrage rapide
+## Quick start
 
-1. Créer un bot avec [@BotFather](https://t.me/BotFather) et récupérer son jeton.
-2. Créer une clé API sur [console.anthropic.com](https://console.anthropic.com).
-3. Configurer :
+1. Create a bot with [@BotFather](https://t.me/BotFather) and copy its token.
+2. Create an API key at [console.anthropic.com](https://console.anthropic.com).
+3. Configure:
 
 ```bash
-cp .env.example .env   # puis renseigner TELEGRAM_BOT_TOKEN et ANTHROPIC_API_KEY
+cp .env.example .env   # then set TELEGRAM_BOT_TOKEN and ANTHROPIC_API_KEY
 ```
 
-### En local (SQLite)
+### Locally (SQLite)
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
@@ -51,75 +54,75 @@ pip install -e ".[dev]"
 coach-bot
 ```
 
-### Avec Docker (PostgreSQL)
+### With Docker (PostgreSQL)
 
 ```bash
 docker compose up -d --build
 docker compose logs -f bot
 ```
 
-Le bot fonctionne en *polling* : aucune URL publique n'est nécessaire, une petite machine ou un conteneur suffit.
+The bot uses *polling*: no public URL is needed, a small machine or container is enough.
 
 ### Tests
 
 ```bash
-pytest -q        # 136 tests : règles, planning, agent simulé, planificateur, handlers Telegram
+pytest -q        # 136 tests: rules, planning, fake agent, scheduler, Telegram handlers
 ruff check .
 ```
 
-## Utilisation
+## Usage
 
-L'utilisateur écrit normalement (« réunion jusqu'à 19h », « ce soir j'ai 20 minutes et des œufs », « je n'aime pas les champignons »). Commandes disponibles :
+Users write normally, in French ("réunion jusqu'à 19h", "ce soir j'ai 20 minutes et des œufs", "je n'aime pas les champignons"). Available commands:
 
-| Commande | Effet |
+| Command | Effect |
 | --- | --- |
-| `/start [CODE]` | Consentement puis onboarding conversationnel |
-| `/aujourdhui` | Séance et dîner du jour |
-| `/semaine` | Planning de la semaine |
-| `/courses` | Liste de courses par rayon |
-| `/planifier` | Refaire le planning |
-| `/bilan` | Bilan de la semaine |
-| `/silence` | Aucun message automatique aujourd'hui |
-| `/reprendre` | Lever la pause après une douleur |
-| `/export` | Recevoir toutes ses données en JSON |
-| `/supprimer` | Effacer définitivement ses données |
-| `/stats` | Métriques du pilote (administrateurs uniquement) |
+| `/start [CODE]` | Consent, then conversational onboarding |
+| `/aujourdhui` | Today's session and dinner |
+| `/semaine` | The week's plan |
+| `/courses` | Grocery list by aisle |
+| `/planifier` | Redo the plan |
+| `/bilan` | Weekly summary |
+| `/silence` | No automatic message today |
+| `/reprendre` | Lift the pause after pain was reported |
+| `/export` | Receive all personal data as JSON |
+| `/supprimer` | Permanently delete personal data |
+| `/stats` | Pilot metrics (admins only) |
 
-Pour le pilote, renseigner `PILOT_INVITE_CODES` et distribuer le lien `https://t.me/<nom_du_bot>?start=<CODE>`.
+For the pilot, set `PILOT_INVITE_CODES` and share the link `https://t.me/<bot_name>?start=<CODE>`.
 
-## Règles de progression
+## Progression rules
 
-| Situation | Effet |
+| Situation | Effect |
 | --- | --- |
-| 2 retours « dur » d'affilée à la même charge | charge − 1 |
-| 2 retours « facile » d'affilée à la même charge | charge + 1 |
-| Séance sautée | aucun effet |
-| 10 jours ou plus sans séance | charge − 2 au prochain planning |
-| Douleur ou avis médical signalé | pas de hausse, séances de mobilité douce uniquement |
+| 2 "hard" feedbacks in a row at the same load | load − 1 |
+| 2 "easy" feedbacks in a row at the same load | load + 1 |
+| Skipped session | no effect |
+| 10 days or more without a session | load − 2 at the next planning (computed from the last session, never compounded) |
+| Pain or medical advice reported | no increase, gentle mobility sessions only |
 
-## Couverture des user stories
+## User story coverage
 
-| Épopée | Stories | État |
+| Epic | Stories | Status |
 | --- | --- | --- |
-| E1 Onboarding | US1–US4 | Fait : conversation guidée, créneaux, matériel, exclusions (test automatisé), consentement |
-| E2 Planning hebdomadaire | US5–US8 | Fait : planning du dimanche, contraintes, 4 à 5 dîners remplaçables, liste par rayon |
-| E3 Quotidien et imprévus | US9–US12 | Fait : brief en un tap, raccourcir / décaler / annuler, « 20 minutes et ça dans le frigo », mode silence |
-| E4 Séance et retour | US13–US15 | Fait : séance détaillée, retour en un tap, séance sautée sans culpabilité |
-| E5 Progression et mémoire | US16–US18 | Fait : règles déterministes, préférences, reprise après pause |
-| E6 Bilan | US19 | Fait : bilan enchaîné avec le planning du dimanche |
-| E7 Confiance et pilote | US20–US24 | Fait : garde-fou, export et suppression immédiate, `/stats`, relecture des plans (`coach-metrics --plans 50`), questionnaire en semaine 8 |
+| E1 Onboarding | US1–US4 | Done: guided conversation, slots, equipment, exclusions (automated test), consent |
+| E2 Weekly planning | US5–US8 | Done: Sunday planning, constraints, 4 to 5 swappable dinners, list by aisle |
+| E3 Daily life and changes | US9–US12 | Done: one-tap brief, shorten / postpone / cancel, "20 minutes and this in the fridge", quiet mode |
+| E4 Session and feedback | US13–US15 | Done: detailed session, one-tap feedback, guilt-free skipped session |
+| E5 Progression and memory | US16–US18 | Done: deterministic rules, preferences, comeback after a break |
+| E6 Summary | US19 | Done: summary sent together with the Sunday planning |
+| E7 Trust, safety and pilot | US20–US24 | Done: guardrail, export and immediate deletion, `/stats`, plan review (`coach-metrics --plans 50`), week-8 survey |
 
-## Données et RGPD
+## Data and GDPR
 
-- Aucune donnée médicale n'est stockée : une mention de douleur pose un drapeau de pause, sans le texte du message.
-- Les messages sont envoyés à l'API Anthropic pour être traités.
-- `/supprimer` efface immédiatement toutes les données ; seul un compteur anonyme subsiste dans le journal.
-- Avant le pilote : héberger la base dans l'UE et valider la qualification des données (et un éventuel besoin d'hébergement HDS) avec le DPO de l'INP.
+- No medical data is stored: a mention of pain sets a pause flag, without the message text.
+- Messages are sent to the Anthropic API for processing.
+- `/supprimer` deletes all data immediately; only an anonymous count remains in the event log.
+- Before the pilot: host the database in the EU and validate the data classification (and a possible need for HDS-certified hosting) with INP's data protection officer.
 
-## Avant le pilote
+## Before the pilot
 
-- [ ] Faire valider les bibliothèques d'exercices (coach, STAPS) et de recettes (diététicien·ne) ; elles comptent 43 exercices et 25 recettes, l'objectif de départ était 60 et 40.
-- [ ] Faire relire les messages du garde-fou (`coach/safety.py`).
-- [ ] Renseigner les tarifs `LLM_*_USD_PER_MTOK` pour suivre le coût par utilisateur.
-- [ ] Ajouter des migrations Alembic avant toute évolution du schéma en production.
-- [ ] Tester le parcours complet avec l'équipe pendant une semaine.
+- [ ] Have the exercise library reviewed (coach, sports science) and the recipe library reviewed (dietitian). They hold 43 exercises and 25 recipes; the initial target was 60 and 40.
+- [ ] Have the guardrail messages reviewed (`coach/safety.py`).
+- [ ] Set the `LLM_*_USD_PER_MTOK` prices to track cost per user.
+- [ ] Add Alembic migrations before any schema change in production.
+- [ ] Run the full flow with the team for one week.

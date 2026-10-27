@@ -1,6 +1,6 @@
-"""Chargement de la bibliothèque contrôlée d'exercices et de recettes.
+"""Loading of the controlled exercise and recipe library.
 
-L'assistant ne propose jamais d'exercice ni de recette en dehors de ces fichiers.
+The assistant never suggests an exercise or a recipe that is not in these files.
 """
 
 from __future__ import annotations
@@ -14,22 +14,23 @@ import yaml
 
 LIBRARY_DIR = Path(__file__).parent
 
-EQUIPMENT = ("aucun", "elastique", "halteres", "banc")
-LEVELS = {"debutant": 1, "intermediaire": 2, "avance": 3}
+EQUIPMENT = ("none", "band", "dumbbells", "bench")
+LEVELS = {"beginner": 1, "intermediate": 2, "advanced": 3}
+# Aisle id -> label shown to users (French).
 AISLES = {
-    "fruits_legumes": "Fruits et légumes",
-    "frais": "Frais (crèmerie, œufs)",
-    "boucherie_poisson": "Boucherie et poissonnerie",
-    "surgeles": "Surgelés",
-    "boulangerie": "Boulangerie",
-    "epicerie": "Épicerie",
+    "produce": "Fruits et légumes",
+    "dairy_eggs": "Frais (crèmerie, œufs)",
+    "meat_fish": "Boucherie et poissonnerie",
+    "frozen": "Surgelés",
+    "bakery": "Boulangerie",
+    "grocery": "Épicerie",
 }
-ANIMAL_TAGS = {"viande", "porc", "volaille", "boeuf", "poisson", "crustaces"}
+ANIMAL_TAGS = {"meat", "pork", "poultry", "beef", "fish", "shellfish"}
 
 
 def normalize(text: str) -> str:
-    """Minuscules sans accents ni ligatures, pour comparer des termes saisis librement."""
-    text = text.lower().replace("œ", "oe").replace("æ", "ae").replace("\u2019", "'").replace("\u2018", "'")
+    """Lowercase, without accents or ligatures, to compare free-form user input."""
+    text = text.lower().replace("œ", "oe").replace("æ", "ae").replace("’", "'").replace("‘", "'")
     text = unicodedata.normalize("NFKD", text)
     return "".join(c for c in text if not unicodedata.combining(c)).strip()
 
@@ -73,7 +74,7 @@ class Recipe:
 
     @property
     def is_vegan(self) -> bool:
-        return self.is_vegetarian and not (self.tags & {"oeuf", "lactose"})
+        return self.is_vegetarian and not (self.tags & {"egg", "lactose"})
 
 
 @dataclass(frozen=True)
@@ -105,7 +106,7 @@ def _load_exercises(path: Path) -> dict[str, Exercise]:
             cue=item["cue"],
         )
         if ex.id in out:
-            raise ValueError(f"Exercice en double : {ex.id}")
+            raise ValueError(f"Duplicate exercise id: {ex.id}")
         out[ex.id] = ex
     return out
 
@@ -135,7 +136,7 @@ def _load_recipes(path: Path) -> dict[str, Recipe]:
             tags=tags,
         )
         if rec.id in out:
-            raise ValueError(f"Recette en double : {rec.id}")
+            raise ValueError(f"Duplicate recipe id: {rec.id}")
         out[rec.id] = rec
     return out
 
@@ -149,43 +150,63 @@ def get_library(directory: str | None = None) -> Library:
     )
 
 
-# --- Exclusions alimentaires -------------------------------------------------
+# --- Food exclusions -----------------------------------------------------------
 
-# Termes libres de l'utilisateur → tags d'ingrédients exclus.
+_NO_ANIMAL = {"meat", "pork", "poultry", "beef", "fish", "shellfish"}
+_NO_MEAT = {"meat", "pork", "poultry", "beef"}
+
+# Free-form user terms (normalized) -> excluded ingredient tags.
+# Keys are mostly French because users write in French; English synonyms are accepted too.
 EXCLUSION_ALIASES: dict[str, set[str]] = {
-    "vegetarien": {"viande", "porc", "volaille", "boeuf", "poisson", "crustaces"},
-    "vegetarienne": {"viande", "porc", "volaille", "boeuf", "poisson", "crustaces"},
-    "vegan": {"viande", "porc", "volaille", "boeuf", "poisson", "crustaces", "oeuf", "lactose"},
-    "vegane": {"viande", "porc", "volaille", "boeuf", "poisson", "crustaces", "oeuf", "lactose"},
-    "viande": {"viande", "porc", "volaille", "boeuf"},
-    "porc": {"porc"},
-    "boeuf": {"boeuf"},
-    "volaille": {"volaille"},
-    "poulet": {"volaille"},
-    "poisson": {"poisson"},
-    "fruits de mer": {"crustaces"},
-    "crustaces": {"crustaces"},
+    "vegetarien": _NO_ANIMAL,
+    "vegetarienne": _NO_ANIMAL,
+    "vegetarian": _NO_ANIMAL,
+    "vegan": _NO_ANIMAL | {"egg", "lactose"},
+    "vegane": _NO_ANIMAL | {"egg", "lactose"},
+    "viande": _NO_MEAT,
+    "meat": _NO_MEAT,
+    "porc": {"pork"},
+    "pork": {"pork"},
+    "boeuf": {"beef"},
+    "beef": {"beef"},
+    "volaille": {"poultry"},
+    "poulet": {"poultry"},
+    "chicken": {"poultry"},
+    "poisson": {"fish"},
+    "fish": {"fish"},
+    "fruits de mer": {"shellfish"},
+    "crustaces": {"shellfish"},
+    "shellfish": {"shellfish"},
     "gluten": {"gluten"},
     "sans gluten": {"gluten"},
     "lactose": {"lactose"},
     "sans lactose": {"lactose"},
     "produits laitiers": {"lactose"},
-    "oeuf": {"oeuf"},
-    "oeufs": {"oeuf"},
-    "fruits a coque": {"fruits_a_coque"},
-    "noix": {"fruits_a_coque"},
-    "arachide": {"arachide"},
-    "arachides": {"arachide"},
-    "cacahuete": {"arachide"},
-    "cacahuetes": {"arachide"},
-    "soja": {"soja"},
-    "champignon": {"champignons"},
-    "champignons": {"champignons"},
+    "dairy": {"lactose"},
+    "oeuf": {"egg"},
+    "oeufs": {"egg"},
+    "egg": {"egg"},
+    "eggs": {"egg"},
+    "fruits a coque": {"tree_nuts"},
+    "noix": {"tree_nuts"},
+    "nuts": {"tree_nuts"},
+    "arachide": {"peanut"},
+    "arachides": {"peanut"},
+    "cacahuete": {"peanut"},
+    "cacahuetes": {"peanut"},
+    "peanut": {"peanut"},
+    "peanuts": {"peanut"},
+    "soja": {"soy"},
+    "soy": {"soy"},
+    "champignon": {"mushroom"},
+    "champignons": {"mushroom"},
+    "mushroom": {"mushroom"},
+    "mushrooms": {"mushroom"},
 }
 
 
 def exclusion_tags_and_terms(exclusions: list[str]) -> tuple[set[str], set[str]]:
-    """Sépare les exclusions en tags connus et en termes libres (comparés aux noms)."""
+    """Split exclusions into known tags and free-form terms (matched against ingredient names)."""
     tags: set[str] = set()
     terms: set[str] = set()
     for raw in exclusions:
@@ -200,7 +221,7 @@ def exclusion_tags_and_terms(exclusions: list[str]) -> tuple[set[str], set[str]]
 
 
 def recipe_violates(recipe: Recipe, exclusions: list[str]) -> bool:
-    """Vrai si la recette contient un aliment exclu (contrôle strict, US3)."""
+    """True if the recipe contains an excluded food (strict check, US3)."""
     tags, terms = exclusion_tags_and_terms(exclusions)
     if recipe.tags & tags:
         return True

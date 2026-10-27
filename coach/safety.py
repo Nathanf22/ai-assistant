@@ -1,7 +1,10 @@
-"""Garde-fou (US20) : détection des messages à risque avant tout appel au LLM.
+"""Safety guardrail (US20): detects risky messages before any LLM call.
 
-La détection est volontairement large : un faux positif coûte un message de prudence,
-un faux négatif peut coûter une blessure. Le détail du message n'est jamais stocké.
+Detection is deliberately broad: a false positive costs one cautious message, a false
+negative can cost an injury. The message content itself is never stored.
+
+Patterns match French user input (normalized: lowercase, no accents) and the replies are
+user-facing, so both stay in French.
 """
 
 from __future__ import annotations
@@ -11,7 +14,7 @@ from dataclasses import dataclass
 
 from coach.library import normalize
 
-# Ordre = priorité : la première catégorie trouvée l'emporte.
+# Order = priority: the first matching category wins.
 PATTERNS: dict[str, list[str]] = {
     "crisis": [
         r"\bsuicid", r"me tuer", r"en finir", r"plus envie de vivre", r"me faire du mal",
@@ -86,7 +89,7 @@ class SafetyResult:
 
     @property
     def blocks_llm(self) -> bool:
-        """Les cas graves reçoivent un message fixe, sans passer par le LLM."""
+        """Serious cases get a fixed reply and never reach the LLM."""
         return self.category in {"crisis", "emergency", "eating"}
 
 

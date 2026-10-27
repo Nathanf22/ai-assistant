@@ -1,4 +1,4 @@
-"""Tests des opérations en base : planning, retours, imprévus, exclusions, données personnelles."""
+"""Tests for database operations: planning, feedback, changes, exclusions, personal data."""
 
 from __future__ import annotations
 
@@ -57,7 +57,7 @@ async def test_two_hard_sessions_lighten_the_next_ones(db, onboarded_user):
         out = await services.record_feedback(s, user, sessions[1].id, "hard", "trop de pompes")
         assert out.decision.reason == "easier"
         assert user.load_level == start - 1
-        assert sessions[2].load_level == start - 1  # séance à venir reconstruite
+        assert sessions[2].load_level == start - 1  # upcoming session rebuilt
 
 
 async def test_reschedule_shorten_postpone_cancel(db, onboarded_user):
@@ -111,7 +111,7 @@ async def test_swap_meal_refuses_excluded_recipe(db, onboarded_user):
         user = await _user(s, onboarded_user)
         await services.create_week_plan(s, user, MONDAY)
         with pytest.raises(ServiceError):
-            await services.swap_meal(s, user, MONDAY, "gratin_courgettes_jambon")  # contient du porc
+            await services.swap_meal(s, user, MONDAY, "zucchini_ham_gratin")  # contains pork
 
 
 async def test_safety_hold_switches_to_gentle_mobility(db, onboarded_user):
@@ -121,11 +121,11 @@ async def test_safety_hold_switches_to_gentle_mobility(db, onboarded_user):
         await services.set_safety_hold(s, user, "pain")
         lib = get_library()
         for p in await services.upcoming_planned(s, user, MONDAY):
-            assert p.focus == "mobilite"
+            assert p.focus == "mobility"
             assert all(lib.exercise(i["id"]).impact == "low" for i in p.exercises)
         await services.lift_safety_hold(s, user)
         assert not user.safety_hold
-        assert {p.focus for p in await services.upcoming_planned(s, user, MONDAY)} != {"mobilite"}
+        assert {p.focus for p in await services.upcoming_planned(s, user, MONDAY)} != {"mobility"}
 
 
 async def test_quick_session_replaces_todays_session(db, onboarded_user):
@@ -152,8 +152,8 @@ async def test_export_and_delete(db, onboarded_user):
         user = await _user(s, onboarded_user)
         await services.create_week_plan(s, user, MONDAY)
         data = await services.export_user_data(s, user)
-        assert data["profil"]["telegram_id"] == 1001
-        assert data["seances"] and data["diners"]
+        assert data["profile"]["telegram_id"] == 1001
+        assert data["sessions"] and data["dinners"]
         await services.delete_user(s, user)
     async with db.session() as s:
         assert await services.get_user(s, 1001) is None

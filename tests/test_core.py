@@ -1,4 +1,4 @@
-"""Tests du cœur déterministe : bibliothèque, progression, séances, planning, garde-fou."""
+"""Tests for the deterministic core: library, progression, sessions, planning, safety."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ LIB = get_library()
 MONDAY = date(2026, 11, 2)
 
 
-# --- Bibliothèque ---------------------------------------------------------------------
+# --- Library --------------------------------------------------------------------------
 
 
 def test_library_is_consistent():
@@ -97,13 +97,13 @@ def test_comeback_after_ten_days():
 def test_comeback_does_not_compound_on_replanning():
     last = DoneSession(MONDAY - timedelta(days=12), 8, "ok")
     load = 8
-    for _ in range(3):  # /planifier, puis l'agent, puis le dimanche : même pause
+    for _ in range(3):  # /planifier, then the agent, then Sunday: same break
         load = progression.before_planning(load, last, MONDAY).load
     assert load == 6
 
 
 def test_load_does_not_flip_after_a_change():
-    """Régression : facile ×2 (3→4), dur ×2 (4→3), puis un seul « facile » ne doit pas remonter."""
+    """Regression: easy x2 (3->4), hard x2 (4->3), then a single "easy" must not raise the load."""
     history, load = [], 3
     for fb in ("easy", "easy", "hard", "hard", "easy"):
         history.append(DoneSession(MONDAY + timedelta(days=len(history)), load, fb))
@@ -113,11 +113,11 @@ def test_load_does_not_flip_after_a_change():
     assert progression.after_feedback(load, history).load == 4
 
 
-# --- Séances (US13) -----------------------------------------------------------------
+# --- Sessions (US13) -----------------------------------------------------------------
 
 
 @pytest.mark.parametrize("minutes", [10, 15, 20, 25, 30, 45])
-@pytest.mark.parametrize("focus", [*FOCUS_ROTATION, "mobilite"])
+@pytest.mark.parametrize("focus", [*FOCUS_ROTATION, "mobility"])
 def test_session_fits_time_budget(minutes, focus):
     items = build_session(LIB, SessionRequest(minutes, focus, 5, 1, frozenset(), seed="t"))
     assert items
@@ -125,22 +125,22 @@ def test_session_fits_time_budget(minutes, focus):
 
 
 def test_session_respects_equipment_level_and_avoidance():
-    req = SessionRequest(30, "full_body", 5, 1, frozenset({"elastique"}), avoided=frozenset({"squat"}), seed="x")
+    req = SessionRequest(30, "full_body", 5, 1, frozenset({"band"}), avoided=frozenset({"squat"}), seed="x")
     items = build_session(LIB, req)
     for it in items:
         ex = LIB.exercise(it["id"])
-        assert ex.equipment in {"aucun", "elastique"}
+        assert ex.equipment in {"none", "band"}
         assert ex.level == 1
         assert ex.id != "squat"
 
 
 def test_low_impact_excludes_jumps():
-    req = SessionRequest(30, "haut_cardio", 5, 3, frozenset(), low_impact=True, seed="x")
+    req = SessionRequest(30, "upper_cardio", 5, 3, frozenset(), low_impact=True, seed="x")
     assert all(LIB.exercise(i["id"]).impact == "low" for i in build_session(LIB, req))
 
 
 def test_session_is_reproducible():
-    req = SessionRequest(25, "full_body", 4, 2, frozenset({"halteres"}), seed="u1:2026-11-02")
+    req = SessionRequest(25, "full_body", 4, 2, frozenset({"dumbbells"}), seed="u1:2026-11-02")
     assert build_session(LIB, req) == build_session(LIB, req)
 
 
@@ -169,7 +169,7 @@ def test_sessions_only_in_declared_slots_and_spaced():
     assert len(chosen) == 3
     assert {c.day.weekday() for c in chosen} <= {0, 1, 3, 5}
     gaps = [(b.day - a.day).days for a, b in zip(chosen, chosen[1:], strict=False)]
-    assert min(gaps) >= 2  # lundi, jeudi, samedi plutôt que lundi-mardi
+    assert min(gaps) >= 2  # Monday, Thursday, Saturday rather than Monday-Tuesday
 
 
 def test_constraints_remove_cap_and_add_slots():
@@ -188,7 +188,7 @@ def test_constraints_remove_cap_and_add_slots():
                                         ["poisson", "œufs"], ["avocat", "riz"]])
 @pytest.mark.parametrize("seed", ["a", "b", "c", "d"])
 def test_dinners_never_contain_excluded_food(exclusions, seed):
-    """Critère d'acceptation US3 : aucun plat proposé ne contient un aliment exclu."""
+    """US3 acceptance criterion: no suggested dish contains an excluded food."""
     dinners = planner.choose_dinners(LIB, MONDAY, 7, exclusions, [], set(), seed)
     assert dinners
     for _, rid in dinners:
@@ -199,11 +199,11 @@ def test_dinners_avoid_repeats_and_dislikes():
     dinners = planner.choose_dinners(LIB, MONDAY, 5, [], ["champignons"], set(), "s")
     ids = [r for _, r in dinners]
     assert len(ids) == len(set(ids)) == 5
-    assert "risotto_champignons" not in ids
+    assert "mushroom_risotto" not in ids
 
 
 def test_grocery_aggregates_and_skips_basics_and_pantry():
-    items = planner.grocery_list(LIB, [("omelette_epinards_feta", 1), ("shakshuka", 1)], pantry=["pain"])
+    items = planner.grocery_list(LIB, [("spinach_feta_omelette", 1), ("shakshuka", 1)], pantry=["pain"])
     by_name = {i["name"]: i for i in items}
     assert by_name["œufs"]["quantity"] == 5
     assert "huile d'olive" not in by_name and "cumin" not in by_name
@@ -214,10 +214,10 @@ def test_grocery_aggregates_and_skips_basics_and_pantry():
 
 def test_quick_dinner_prefers_what_you_have():
     recipe, missing = planner.quick_dinner(LIB, ["œufs", "épinards", "feta", "pain"], [], [], 20)
-    assert recipe.id == "omelette_epinards_feta" and missing == []
+    assert recipe.id == "spinach_feta_omelette" and missing == []
 
 
-# --- Garde-fou (US20) ---------------------------------------------------------------
+# --- Safety guardrail (US20) ---------------------------------------------------------
 
 
 @pytest.mark.parametrize("text,category", [

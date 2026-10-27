@@ -1,4 +1,7 @@
-"""Bot Telegram : commandes, messages libres et boutons en un tap."""
+"""Telegram bot: commands, free-text messages and one-tap buttons.
+
+Everything sent to users is in French.
+"""
 
 from __future__ import annotations
 
@@ -40,7 +43,7 @@ def agent_of(context: ContextTypes.DEFAULT_TYPE) -> Agent:
 
 
 async def send_long(target, text: str, reply_markup=None) -> None:
-    """Envoie un texte en plusieurs messages si nécessaire (limite Telegram : 4096 caractères)."""
+    """Send a text as several messages if needed (Telegram limit: 4096 characters)."""
     chunks, current = [], ""
     for para in text.split("\n"):
         if len(current) + len(para) + 1 > MAX_LEN:
@@ -54,7 +57,7 @@ async def send_long(target, text: str, reply_markup=None) -> None:
         await target(chunk, reply_markup=markup)
 
 
-# --- Claviers -------------------------------------------------------------------------
+# --- Keyboards ------------------------------------------------------------------------
 
 
 def consent_keyboard() -> InlineKeyboardMarkup:
@@ -105,7 +108,7 @@ def survey_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup([row1, row2])
 
 
-# --- Commandes ------------------------------------------------------------------------
+# --- Commands -------------------------------------------------------------------------
 
 
 async def cmd_start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -175,7 +178,7 @@ async def cmd_grocery(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         if not (user := await _ready_user(update, s)):
             return
         t = today()
-        # Le dimanche après le planning, la liste utile est celle de la semaine suivante.
+        # On Sunday, after the planning message, the useful list is next week's.
         ws = planner.next_week_start(t) if t.weekday() == 6 else planner.week_start_of(t)
         plan = await services.get_week_plan(s, user, ws) or await services.get_week_plan(s, user, planner.week_start_of(t))
         if plan is None:
@@ -257,7 +260,7 @@ async def cmd_stats(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(text)
 
 
-# --- Messages libres -------------------------------------------------------------------
+# --- Free-text messages ----------------------------------------------------------------
 
 
 async def on_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -273,7 +276,7 @@ async def on_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         user.blocked_at = None
         risk = safety.check(text)
         if risk is not None:
-            log_event(s, user.id, "safety_triggered", category=risk.category)  # sans le texte
+            log_event(s, user.id, "safety_triggered", category=risk.category)  # without the message text
             if risk.holds_progression:
                 await services.set_safety_hold(s, user, risk.category)
             await update.message.reply_text(risk.message)
@@ -283,13 +286,13 @@ async def on_text(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         try:
             answer = await agent_of(context).reply(s, user, text)
         except Exception:
-            log.exception("Échec de l'agent")
-            await s.rollback()  # pas de changement partiel ni de tour utilisateur orphelin
+            log.exception("Agent failed")
+            await s.rollback()  # no partial changes and no orphan user turn
             answer = "Je rencontre un souci technique, réessaie dans quelques minutes."
     await send_long(update.message.reply_text, answer)
 
 
-# --- Boutons ---------------------------------------------------------------------------
+# --- Buttons ---------------------------------------------------------------------------
 
 
 async def on_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -300,8 +303,8 @@ async def on_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat_id = update.effective_chat.id
 
     async def reply(text, reply_markup=None):
-        # Un bouton sur un message de plus de 48 h arrive avec un message inaccessible,
-        # sans reply_text : on répond alors directement dans la conversation.
+        # A button on a message older than 48 h arrives with an inaccessible message that
+        # has no reply_text: answer directly in the chat instead.
         target = getattr(query.message, "reply_text", None)
         if target is not None:
             return await target(text, reply_markup=reply_markup)
@@ -311,7 +314,7 @@ async def on_button(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         try:
             await query.edit_message_reply_markup(markup)
         except TelegramError:
-            pass  # message trop ancien ou déjà modifié
+            pass  # message too old or already edited
 
     async with db_of(context).session() as s:
         user = await services.get_user(s, update.effective_user.id)
@@ -412,7 +415,7 @@ def planning_keyboard_list_only(week_start: date) -> InlineKeyboardMarkup:
     ]])
 
 
-# --- Envoi du planning (commande et planificateur) ----------------------------------------------
+# --- Sending the weekly plan (command and scheduler) -------------------------------------------
 
 
 async def send_planning(context: ContextTypes.DEFAULT_TYPE, s, user: User, week_start: date,
@@ -423,7 +426,7 @@ async def send_planning(context: ContextTypes.DEFAULT_TYPE, s, user: User, week_
         summary_line = summary_text(summary) if summary.planned else None
     load_before = user.load_level
     await services.create_week_plan(s, user, week_start)
-    await s.commit()  # le planning existe même si l'envoi échoue
+    await s.commit()  # the plan exists even if sending fails
     end = week_start + timedelta(days=7)
     body = services.describe_week(
         await services.sessions_between(s, user, week_start, end),
@@ -437,7 +440,7 @@ async def send_planning(context: ContextTypes.DEFAULT_TYPE, s, user: User, week_
                     text, reply_markup=planning_keyboard(week_start))
 
 
-# --- Application ---------------------------------------------------------------------------
+# --- Application -----------------------------------------------------------------------------
 
 
 def build_application(db: Database, agent: Agent) -> Application:
@@ -445,9 +448,9 @@ def build_application(db: Database, agent: Agent) -> Application:
 
     settings = get_settings()
     if not settings.telegram_bot_token:
-        raise RuntimeError("TELEGRAM_BOT_TOKEN manquant (voir .env.example).")
+        raise RuntimeError("TELEGRAM_BOT_TOKEN is missing (see .env.example).")
     async def post_init(_: Application) -> None:
-        await db.create_all()  # MVP : création du schéma ; migrations Alembic à prévoir
+        await db.create_all()  # MVP: create the schema; Alembic migrations still to add
 
     async def post_shutdown(_: Application) -> None:
         await db.dispose()

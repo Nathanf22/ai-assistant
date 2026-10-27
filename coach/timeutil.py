@@ -1,4 +1,7 @@
-"""Heure locale : toutes les dates de planning sont des dates locales (Europe/Paris par défaut)."""
+"""Local time: every planning date is a local date (Europe/Paris by default).
+
+Day and month names are user-facing and stay in French.
+"""
 
 from __future__ import annotations
 

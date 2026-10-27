@@ -1,4 +1,7 @@
-"""Messages fixes envoyés par le bot (hors LLM) : brief, planning, bilan, consentement."""
+"""Fixed messages sent by the bot without the LLM: brief, planning, summary, consent.
+
+All strings here are user-facing and stay in French.
+"""
 
 from __future__ import annotations
 
@@ -46,7 +49,7 @@ HELP_TEXT = (
 
 
 def brief_text(user: User, session: PlannedSession | None, meal: PlannedMeal | None) -> str:
-    """Brief du matin : 3 lignes maximum (US9)."""
+    """Morning brief: 3 lines at most (US9)."""
     lib = get_library()
     hello = f"Bonjour {user.first_name} !" if user.first_name else "Bonjour !"
     lines = [hello]

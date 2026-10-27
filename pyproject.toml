@@ -1,7 +1,7 @@
 [project]
 name = "assistant-sport-repas"
 version = "0.1.0"
-description = "Assistant IA qui transforme des objectifs de sport et d'alimentation en plan quotidien réaliste (MVP pilote INP)."
+description = "AI assistant that turns sport and nutrition goals into a realistic daily plan (INP pilot MVP)."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

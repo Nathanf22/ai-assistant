@@ -1,4 +1,4 @@
-"""Tests des handlers Telegram avec des objets Update simulés (sans réseau)."""
+"""Tests for the Telegram handlers with fake Update objects (no network)."""
 
 from __future__ import annotations
 
@@ -204,7 +204,7 @@ async def test_button_on_inaccessible_message_falls_back_to_send(db, onboarded_u
         from telegram.error import BadRequest
         raise BadRequest("Message can't be edited")
 
-    update.callback_query.message = SimpleNamespace()  # InaccessibleMessage : pas de reply_text
+    update.callback_query.message = SimpleNamespace()  # InaccessibleMessage: no reply_text
     update.callback_query.edit_message_reply_markup = refuse
     await bot.on_button(update, ctx)
     assert ctx.bot.sent and "Retour enregistré" in ctx.bot.sent[0][1]

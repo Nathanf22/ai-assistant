@@ -1,4 +1,4 @@
-"""Configuration lue depuis les variables d'environnement (ou un fichier .env)."""
+"""Settings read from environment variables (or a .env file)."""
 
 from functools import lru_cache
 
@@ -11,12 +11,12 @@ class Settings(BaseSettings):
     telegram_bot_token: str = ""
     anthropic_api_key: str = ""
 
-    # Modèle utilisé par l'agent conversationnel.
+    # Model used by the conversational agent.
     llm_model: str = "claude-sonnet-5-5"
     llm_max_tokens: int = 1024
     llm_max_tool_rounds: int = 6
-    # Tarifs (USD par million de tokens) pour estimer le coût dans les métriques.
-    # Laisser à 0 si inconnus : seuls les volumes de tokens seront affichés.
+    # Prices (USD per million tokens) used to estimate cost in the metrics.
+    # Leave at 0 if unknown: only token volumes are reported.
     llm_input_usd_per_mtok: float = 0.0
     llm_output_usd_per_mtok: float = 0.0
     llm_cache_read_usd_per_mtok: float = 0.0
@@ -25,13 +25,13 @@ class Settings(BaseSettings):
     database_url: str = "sqlite+aiosqlite:///./coach.db"
     timezone: str = "Europe/Paris"
 
-    # Identifiants Telegram autorisés à utiliser /stats (séparés par des virgules).
+    # Telegram user ids allowed to use /stats (comma-separated).
     admin_telegram_ids: str = ""
 
-    # Pilote : si non vide, seuls ces codes d'invitation permettent de s'inscrire.
+    # Pilot: when set, only these invite codes allow signing up.
     pilot_invite_codes: str = ""
 
-    # Délai (minutes) après la fin prévue d'une séance avant de demander un retour.
+    # Delay (minutes) after a session's planned end before asking for feedback.
     feedback_delay_minutes: int = 45
 
     @property

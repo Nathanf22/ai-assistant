@@ -1,9 +1,9 @@
-"""Planificateur : l'assistant écrit en premier (brief, retour après séance, planning du dimanche).
+"""Scheduler: the assistant writes first (morning brief, post-session feedback, Sunday planning).
 
-Une tâche tourne chaque minute et décide, pour chaque utilisateur, ce qui doit partir.
-Des marqueurs en base (`last_brief_on`, `last_planning_on`, `feedback_requested_at`) évitent
-les doublons, y compris après un redémarrage. Chaque marqueur est validé (commit) AVANT l'envoi :
-en cas d'échec, on préfère perdre un message plutôt que de le renvoyer chaque minute.
+A job runs every minute and decides, for each user, what is due.
+Database markers (`last_brief_on`, `last_planning_on`, `feedback_requested_at`) prevent
+duplicates, including across restarts. Each marker is committed BEFORE sending: if sending
+fails, losing one message is better than resending it every minute.
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ from coach.timeutil import local_datetime, now, parse_hhmm
 log = logging.getLogger(__name__)
 
 BRIEF_WINDOW = timedelta(hours=3)
-SURVEY_AFTER = timedelta(days=56)  # fin du pilote de 8 semaines
+SURVEY_AFTER = timedelta(days=56)  # end of the 8-week pilot
 
 
 def register_jobs(app: Application) -> None:
@@ -45,14 +45,14 @@ async def tick(context: ContextTypes.DEFAULT_TYPE) -> None:
                 if user is not None:
                     await run_for_user(context, s, user, now())
         except Forbidden:
-            log.info("Utilisateur %s a bloqué le bot : envois suspendus", uid)
+            log.info("User %s blocked the bot: automatic messages suspended", uid)
             async with db.session() as s:
                 user = await s.get(User, uid)
                 if user is not None:
                     user.blocked_at = datetime.now(UTC)
                     log_event(s, uid, "bot_blocked")
         except Exception:
-            log.exception("Échec du planificateur pour l'utilisateur %s", uid)
+            log.exception("Scheduler failed for user %s", uid)
 
 
 def _reached(current: datetime, hhmm: str) -> bool:
@@ -61,7 +61,7 @@ def _reached(current: datetime, hhmm: str) -> bool:
 
 
 async def run_for_user(context: ContextTypes.DEFAULT_TYPE, s, user: User, current: datetime) -> list[str]:
-    """Exécute les envois dus pour un utilisateur. Renvoie la liste des actions (pour les tests)."""
+    """Send whatever is due for one user. Returns the list of actions taken (for tests)."""
     from coach.bot import brief_keyboard, feedback_keyboard, send_planning, survey_keyboard
 
     done: list[str] = []
@@ -69,14 +69,14 @@ async def run_for_user(context: ContextTypes.DEFAULT_TYPE, s, user: User, curren
     quiet = t.isoformat() in (user.quiet_dates or [])
     bot = context.bot
 
-    # Filet de sécurité : toujours un planning pour la semaine en cours.
+    # Safety net: there is always a plan for the current week.
     ws = planner.week_start_of(t)
     if await services.get_week_plan(s, user, ws) is None and user.slots:
         await services.create_week_plan(s, user, ws)
         await s.commit()
         done.append("week_plan_created")
 
-    # Planning du dimanche pour la semaine suivante (US5) + bilan (US19).
+    # Sunday planning for next week (US5) + weekly summary (US19).
     if t.weekday() == 6 and user.last_planning_on != t and _reached(current, user.planning_time):
         user.last_planning_on = t
         await s.commit()
@@ -86,7 +86,7 @@ async def run_for_user(context: ContextTypes.DEFAULT_TYPE, s, user: User, curren
             await send_planning(context, s, user, planner.next_week_start(t), with_summary=True)
         done.append("planning")
 
-    # Brief du matin (US9).
+    # Morning brief (US9).
     brief_at = local_datetime(t, user.brief_time)
     if user.last_brief_on != t and brief_at <= current < brief_at + BRIEF_WINDOW:
         user.last_brief_on = t
@@ -104,7 +104,7 @@ async def run_for_user(context: ContextTypes.DEFAULT_TYPE, s, user: User, curren
             log_event(s, user.id, "brief_sent", has_session=bool(session))
             done.append("brief")
 
-    # Demande de retour après la séance (US14).
+    # Post-session feedback request (US14).
     delay = timedelta(minutes=get_settings().feedback_delay_minutes)
     recent = await services.sessions_between(s, user, t - timedelta(days=1), t + timedelta(days=1))
     for p in recent:
@@ -120,7 +120,7 @@ async def run_for_user(context: ContextTypes.DEFAULT_TYPE, s, user: User, curren
                 log_event(s, user.id, "feedback_requested", session_id=p.id)
                 done.append("feedback")
 
-    # Questionnaire de fin de pilote (US24).
+    # End-of-pilot survey (US24).
     onboarded = user.onboarded_at if user.onboarded_at.tzinfo else user.onboarded_at.replace(tzinfo=UTC)
     if user.survey_sent_at is None and current - onboarded >= SURVEY_AFTER and not quiet \
             and _reached(current, "12:00"):

@@ -1,69 +1,70 @@
-# Bibliothèque d'exercices de départ.
-# À faire valider par un professionnel (coach, STAPS) avant le pilote.
+# Starter exercise library.
+# Must be reviewed by a professional (coach, sports science) before the pilot.
+# `name` and `cue` are shown to users and stay in French.
 #
-# Champs :
-#   id        identifiant stable (utilisé dans les préférences et l'historique)
-#   name      nom affiché
+# Fields:
+#   id        stable identifier (used in preferences and history)
+#   name      display name (French)
 #   role      warmup | main | cooldown
-#   focus     groupes travaillés : jambes, haut, gainage, cardio, mobilite
-#   equipment matériel requis : aucun, elastique, halteres, banc (chaise solide)
-#   level     niveau minimal : 1 débutant, 2 intermédiaire, 3 avancé
-#   mode      reps (répétitions) ou time (secondes)
-#   base      volume par série à la charge 5 (répétitions ou secondes)
-#   impact    low (silencieux, appartement) ou high (sauts)
-#   cue       consigne courte
+#   focus     muscle groups: legs, upper, core, cardio, mobility
+#   equipment required equipment: none, band, dumbbells, bench (a sturdy chair)
+#   level     minimum level: 1 beginner, 2 intermediate, 3 advanced
+#   mode      reps or time (seconds)
+#   base      volume per set at load 5 (reps or seconds)
+#   impact    low (quiet, apartment-friendly) or high (jumps)
+#   cue       short coaching cue (French)
 
-# --- Échauffement ---------------------------------------------------------
-- {id: rotations_articulaires, name: Rotations articulaires, role: warmup, focus: [mobilite], equipment: aucun, level: 1, mode: time, base: 60, impact: low, cue: "Chevilles, genoux, hanches, épaules : 10 cercles lents chacun."}
-- {id: marche_sur_place, name: Marche active sur place, role: warmup, focus: [cardio], equipment: aucun, level: 1, mode: time, base: 60, impact: low, cue: "Monte les genoux, balance les bras, respire par le nez."}
-- {id: chat_vache, name: Chat-vache, role: warmup, focus: [mobilite], equipment: aucun, level: 1, mode: reps, base: 10, impact: low, cue: "À quatre pattes, arrondis puis creuse le dos, au rythme de la respiration."}
-- {id: fentes_dynamiques_bras, name: Fentes avant avec ouverture des bras, role: warmup, focus: [mobilite, jambes], equipment: aucun, level: 1, mode: reps, base: 8, impact: low, cue: "Petit pas en avant, ouvre les bras, reviens. Alterne les côtés."}
-- {id: jumping_jacks, name: Jumping jacks, role: warmup, focus: [cardio], equipment: aucun, level: 1, mode: time, base: 45, impact: high, cue: "Atterris sur l'avant du pied, genoux souples."}
-- {id: cercles_bras, name: Cercles de bras, role: warmup, focus: [mobilite, haut], equipment: aucun, level: 1, mode: time, base: 40, impact: low, cue: "Petits cercles puis grands, dans les deux sens."}
+# --- Warm-up -----------------------------------------------------------------
+- {id: joint_rotations, name: Rotations articulaires, role: warmup, focus: [mobility], equipment: none, level: 1, mode: time, base: 60, impact: low, cue: "Chevilles, genoux, hanches, épaules : 10 cercles lents chacun."}
+- {id: march_in_place, name: Marche active sur place, role: warmup, focus: [cardio], equipment: none, level: 1, mode: time, base: 60, impact: low, cue: "Monte les genoux, balance les bras, respire par le nez."}
+- {id: cat_cow, name: Chat-vache, role: warmup, focus: [mobility], equipment: none, level: 1, mode: reps, base: 10, impact: low, cue: "À quatre pattes, arrondis puis creuse le dos, au rythme de la respiration."}
+- {id: lunge_with_arm_reach, name: Fentes avant avec ouverture des bras, role: warmup, focus: [mobility, legs], equipment: none, level: 1, mode: reps, base: 8, impact: low, cue: "Petit pas en avant, ouvre les bras, reviens. Alterne les côtés."}
+- {id: jumping_jacks, name: Jumping jacks, role: warmup, focus: [cardio], equipment: none, level: 1, mode: time, base: 45, impact: high, cue: "Atterris sur l'avant du pied, genoux souples."}
+- {id: arm_circles, name: Cercles de bras, role: warmup, focus: [mobility, upper], equipment: none, level: 1, mode: time, base: 40, impact: low, cue: "Petits cercles puis grands, dans les deux sens."}
 
-# --- Jambes ----------------------------------------------------------------
-- {id: squat, name: Squat, role: main, focus: [jambes], equipment: aucun, level: 1, mode: reps, base: 15, impact: low, cue: "Pieds largeur d'épaules, descends comme pour t'asseoir, talons au sol."}
-- {id: squat_chaise, name: Squat assis-debout sur chaise, role: main, focus: [jambes], equipment: banc, level: 1, mode: reps, base: 12, impact: low, cue: "Touche la chaise sans t'asseoir, remonte en poussant dans les talons."}
-- {id: fente_arriere, name: Fente arrière, role: main, focus: [jambes], equipment: aucun, level: 1, mode: reps, base: 10, impact: low, cue: "Grand pas en arrière, genou arrière vers le sol, buste droit. Par jambe."}
-- {id: pont_fessier, name: Pont fessier, role: main, focus: [jambes, gainage], equipment: aucun, level: 1, mode: reps, base: 15, impact: low, cue: "Allongé, pieds au sol, monte le bassin et serre les fessiers en haut."}
-- {id: chaise_murale, name: Chaise contre un mur, role: main, focus: [jambes], equipment: aucun, level: 1, mode: time, base: 40, impact: low, cue: "Dos au mur, cuisses parallèles au sol, respire calmement."}
-- {id: montee_mollets, name: Montées sur la pointe des pieds, role: main, focus: [jambes], equipment: aucun, level: 1, mode: reps, base: 20, impact: low, cue: "Monte lentement, marque une seconde en haut, redescends."}
-- {id: squat_saute, name: Squat sauté, role: main, focus: [jambes, cardio], equipment: aucun, level: 2, mode: reps, base: 12, impact: high, cue: "Squat puis saut, atterrissage souple genoux fléchis."}
-- {id: fente_bulgare, name: Fente bulgare, role: main, focus: [jambes], equipment: banc, level: 2, mode: reps, base: 10, impact: low, cue: "Pied arrière posé sur la chaise, descends droit. Par jambe."}
-- {id: goblet_squat, name: Goblet squat, role: main, focus: [jambes], equipment: halteres, level: 1, mode: reps, base: 12, impact: low, cue: "Haltère contre la poitrine, coudes entre les genoux en bas."}
-- {id: souleve_terre_roumain, name: Soulevé de terre roumain, role: main, focus: [jambes], equipment: halteres, level: 2, mode: reps, base: 10, impact: low, cue: "Dos plat, pousse les fesses en arrière, haltères le long des jambes."}
-- {id: abduction_elastique, name: Pas chassés avec élastique, role: main, focus: [jambes], equipment: elastique, level: 1, mode: reps, base: 12, impact: low, cue: "Élastique au-dessus des genoux, demi-squat, pas sur le côté. Par côté."}
+# --- Legs --------------------------------------------------------------------
+- {id: squat, name: Squat, role: main, focus: [legs], equipment: none, level: 1, mode: reps, base: 15, impact: low, cue: "Pieds largeur d'épaules, descends comme pour t'asseoir, talons au sol."}
+- {id: chair_squat, name: Squat assis-debout sur chaise, role: main, focus: [legs], equipment: bench, level: 1, mode: reps, base: 12, impact: low, cue: "Touche la chaise sans t'asseoir, remonte en poussant dans les talons."}
+- {id: reverse_lunge, name: Fente arrière, role: main, focus: [legs], equipment: none, level: 1, mode: reps, base: 10, impact: low, cue: "Grand pas en arrière, genou arrière vers le sol, buste droit. Par jambe."}
+- {id: glute_bridge, name: Pont fessier, role: main, focus: [legs, core], equipment: none, level: 1, mode: reps, base: 15, impact: low, cue: "Allongé, pieds au sol, monte le bassin et serre les fessiers en haut."}
+- {id: wall_sit, name: Chaise contre un mur, role: main, focus: [legs], equipment: none, level: 1, mode: time, base: 40, impact: low, cue: "Dos au mur, cuisses parallèles au sol, respire calmement."}
+- {id: calf_raise, name: Montées sur la pointe des pieds, role: main, focus: [legs], equipment: none, level: 1, mode: reps, base: 20, impact: low, cue: "Monte lentement, marque une seconde en haut, redescends."}
+- {id: jump_squat, name: Squat sauté, role: main, focus: [legs, cardio], equipment: none, level: 2, mode: reps, base: 12, impact: high, cue: "Squat puis saut, atterrissage souple genoux fléchis."}
+- {id: bulgarian_split_squat, name: Fente bulgare, role: main, focus: [legs], equipment: bench, level: 2, mode: reps, base: 10, impact: low, cue: "Pied arrière posé sur la chaise, descends droit. Par jambe."}
+- {id: goblet_squat, name: Goblet squat, role: main, focus: [legs], equipment: dumbbells, level: 1, mode: reps, base: 12, impact: low, cue: "Haltère contre la poitrine, coudes entre les genoux en bas."}
+- {id: romanian_deadlift, name: Soulevé de terre roumain, role: main, focus: [legs], equipment: dumbbells, level: 2, mode: reps, base: 10, impact: low, cue: "Dos plat, pousse les fesses en arrière, haltères le long des jambes."}
+- {id: band_lateral_walk, name: Pas chassés avec élastique, role: main, focus: [legs], equipment: band, level: 1, mode: reps, base: 12, impact: low, cue: "Élastique au-dessus des genoux, demi-squat, pas sur le côté. Par côté."}
 
-# --- Haut du corps -----------------------------------------------------------
-- {id: pompes_mur, name: Pompes contre un mur, role: main, focus: [haut], equipment: aucun, level: 1, mode: reps, base: 15, impact: low, cue: "Mains au mur largeur d'épaules, corps aligné, poitrine vers le mur."}
-- {id: pompes_genoux, name: Pompes sur les genoux, role: main, focus: [haut], equipment: aucun, level: 1, mode: reps, base: 10, impact: low, cue: "Genoux au sol, bassin aligné, descends la poitrine entre les mains."}
-- {id: pompes, name: Pompes, role: main, focus: [haut], equipment: aucun, level: 2, mode: reps, base: 10, impact: low, cue: "Corps gainé de la tête aux talons, coudes à 45 degrés."}
-- {id: dips_chaise, name: Dips sur chaise, role: main, focus: [haut], equipment: banc, level: 1, mode: reps, base: 10, impact: low, cue: "Mains sur le bord de la chaise, descends en pliant les coudes vers l'arrière."}
-- {id: superman, name: Superman, role: main, focus: [haut, gainage], equipment: aucun, level: 1, mode: reps, base: 12, impact: low, cue: "À plat ventre, décolle bras et jambes, regard vers le sol."}
-- {id: tirage_elastique, name: Tirage horizontal à l'élastique, role: main, focus: [haut], equipment: elastique, level: 1, mode: reps, base: 15, impact: low, cue: "Tire vers le nombril, serre les omoplates, contrôle le retour."}
-- {id: ecarte_elastique, name: Écarté arrière à l'élastique, role: main, focus: [haut], equipment: elastique, level: 1, mode: reps, base: 15, impact: low, cue: "Bras tendus devant, ouvre jusqu'à la poitrine, sans hausser les épaules."}
-- {id: rowing_haltere, name: Rowing haltère un bras, role: main, focus: [haut], equipment: halteres, level: 1, mode: reps, base: 12, impact: low, cue: "Appui sur la chaise, dos plat, coude vers la hanche. Par bras."}
-- {id: developpe_epaules, name: Développé épaules haltères, role: main, focus: [haut], equipment: halteres, level: 1, mode: reps, base: 10, impact: low, cue: "Debout gainé, pousse au-dessus de la tête sans cambrer."}
-- {id: pompes_declinees, name: Pompes pieds surélevés, role: main, focus: [haut], equipment: banc, level: 3, mode: reps, base: 8, impact: low, cue: "Pieds sur la chaise, corps gainé, descends lentement."}
+# --- Upper body --------------------------------------------------------------
+- {id: wall_push_up, name: Pompes contre un mur, role: main, focus: [upper], equipment: none, level: 1, mode: reps, base: 15, impact: low, cue: "Mains au mur largeur d'épaules, corps aligné, poitrine vers le mur."}
+- {id: knee_push_up, name: Pompes sur les genoux, role: main, focus: [upper], equipment: none, level: 1, mode: reps, base: 10, impact: low, cue: "Genoux au sol, bassin aligné, descends la poitrine entre les mains."}
+- {id: push_up, name: Pompes, role: main, focus: [upper], equipment: none, level: 2, mode: reps, base: 10, impact: low, cue: "Corps gainé de la tête aux talons, coudes à 45 degrés."}
+- {id: chair_dip, name: Dips sur chaise, role: main, focus: [upper], equipment: bench, level: 1, mode: reps, base: 10, impact: low, cue: "Mains sur le bord de la chaise, descends en pliant les coudes vers l'arrière."}
+- {id: superman, name: Superman, role: main, focus: [upper, core], equipment: none, level: 1, mode: reps, base: 12, impact: low, cue: "À plat ventre, décolle bras et jambes, regard vers le sol."}
+- {id: band_row, name: Tirage horizontal à l'élastique, role: main, focus: [upper], equipment: band, level: 1, mode: reps, base: 15, impact: low, cue: "Tire vers le nombril, serre les omoplates, contrôle le retour."}
+- {id: band_pull_apart, name: Écarté arrière à l'élastique, role: main, focus: [upper], equipment: band, level: 1, mode: reps, base: 15, impact: low, cue: "Bras tendus devant, ouvre jusqu'à la poitrine, sans hausser les épaules."}
+- {id: dumbbell_row, name: Rowing haltère un bras, role: main, focus: [upper], equipment: dumbbells, level: 1, mode: reps, base: 12, impact: low, cue: "Appui sur la chaise, dos plat, coude vers la hanche. Par bras."}
+- {id: dumbbell_shoulder_press, name: Développé épaules haltères, role: main, focus: [upper], equipment: dumbbells, level: 1, mode: reps, base: 10, impact: low, cue: "Debout gainé, pousse au-dessus de la tête sans cambrer."}
+- {id: decline_push_up, name: Pompes pieds surélevés, role: main, focus: [upper], equipment: bench, level: 3, mode: reps, base: 8, impact: low, cue: "Pieds sur la chaise, corps gainé, descends lentement."}
 
-# --- Gainage ---------------------------------------------------------------
-- {id: planche, name: Planche, role: main, focus: [gainage], equipment: aucun, level: 1, mode: time, base: 35, impact: low, cue: "Sur les avant-bras, bassin aligné, rentre le nombril."}
-- {id: planche_laterale, name: Planche latérale, role: main, focus: [gainage], equipment: aucun, level: 1, mode: time, base: 25, impact: low, cue: "Sur un avant-bras, hanches hautes. Par côté (genoux au sol pour alléger)."}
-- {id: dead_bug, name: Dead bug, role: main, focus: [gainage], equipment: aucun, level: 1, mode: reps, base: 12, impact: low, cue: "Dos plaqué au sol, tends bras et jambe opposés, lentement."}
-- {id: bird_dog, name: Bird dog, role: main, focus: [gainage], equipment: aucun, level: 1, mode: reps, base: 10, impact: low, cue: "À quatre pattes, tends bras et jambe opposés, bassin stable. Par côté."}
-- {id: mountain_climbers, name: Mountain climbers, role: main, focus: [gainage, cardio], equipment: aucun, level: 2, mode: time, base: 30, impact: low, cue: "En planche haute, ramène les genoux vers la poitrine en alternance."}
-- {id: hollow_hold, name: Position creuse, role: main, focus: [gainage], equipment: aucun, level: 2, mode: time, base: 25, impact: low, cue: "Dos plaqué, bras et jambes décollés, menton rentré."}
+# --- Core --------------------------------------------------------------------
+- {id: plank, name: Planche, role: main, focus: [core], equipment: none, level: 1, mode: time, base: 35, impact: low, cue: "Sur les avant-bras, bassin aligné, rentre le nombril."}
+- {id: side_plank, name: Planche latérale, role: main, focus: [core], equipment: none, level: 1, mode: time, base: 25, impact: low, cue: "Sur un avant-bras, hanches hautes. Par côté (genoux au sol pour alléger)."}
+- {id: dead_bug, name: Dead bug, role: main, focus: [core], equipment: none, level: 1, mode: reps, base: 12, impact: low, cue: "Dos plaqué au sol, tends bras et jambe opposés, lentement."}
+- {id: bird_dog, name: Bird dog, role: main, focus: [core], equipment: none, level: 1, mode: reps, base: 10, impact: low, cue: "À quatre pattes, tends bras et jambe opposés, bassin stable. Par côté."}
+- {id: mountain_climbers, name: Mountain climbers, role: main, focus: [core, cardio], equipment: none, level: 2, mode: time, base: 30, impact: low, cue: "En planche haute, ramène les genoux vers la poitrine en alternance."}
+- {id: hollow_hold, name: Position creuse, role: main, focus: [core], equipment: none, level: 2, mode: time, base: 25, impact: low, cue: "Dos plaqué, bras et jambes décollés, menton rentré."}
 
-# --- Cardio ----------------------------------------------------------------
-- {id: talons_fesses, name: Talons-fesses, role: main, focus: [cardio], equipment: aucun, level: 1, mode: time, base: 40, impact: high, cue: "Rythme régulier, talons vers les fesses, bras actifs."}
-- {id: pas_chasses_rapides, name: Pas chassés rapides, role: main, focus: [cardio], equipment: aucun, level: 1, mode: time, base: 40, impact: low, cue: "Trois pas d'un côté, trois de l'autre, en restant bas."}
-- {id: skater, name: Patineur, role: main, focus: [cardio, jambes], equipment: aucun, level: 2, mode: time, base: 35, impact: high, cue: "Bond latéral d'une jambe sur l'autre, réception contrôlée."}
-- {id: burpees, name: Burpees, role: main, focus: [cardio], equipment: aucun, level: 3, mode: reps, base: 10, impact: high, cue: "Planche, retour accroupi, extension. Sans saut si besoin."}
-- {id: boxe_shadow, name: Shadow boxing, role: main, focus: [cardio, haut], equipment: aucun, level: 1, mode: time, base: 45, impact: low, cue: "Garde haute, enchaîne directs et crochets, reste sur l'avant du pied."}
+# --- Cardio ------------------------------------------------------------------
+- {id: butt_kicks, name: Talons-fesses, role: main, focus: [cardio], equipment: none, level: 1, mode: time, base: 40, impact: high, cue: "Rythme régulier, talons vers les fesses, bras actifs."}
+- {id: fast_side_shuffle, name: Pas chassés rapides, role: main, focus: [cardio], equipment: none, level: 1, mode: time, base: 40, impact: low, cue: "Trois pas d'un côté, trois de l'autre, en restant bas."}
+- {id: skater, name: Patineur, role: main, focus: [cardio, legs], equipment: none, level: 2, mode: time, base: 35, impact: high, cue: "Bond latéral d'une jambe sur l'autre, réception contrôlée."}
+- {id: burpees, name: Burpees, role: main, focus: [cardio], equipment: none, level: 3, mode: reps, base: 10, impact: high, cue: "Planche, retour accroupi, extension. Sans saut si besoin."}
+- {id: shadow_boxing, name: Shadow boxing, role: main, focus: [cardio, upper], equipment: none, level: 1, mode: time, base: 45, impact: low, cue: "Garde haute, enchaîne directs et crochets, reste sur l'avant du pied."}
 
-# --- Retour au calme ---------------------------------------------------------
-- {id: etirement_ischios, name: Étirement des ischio-jambiers, role: cooldown, focus: [mobilite], equipment: aucun, level: 1, mode: time, base: 40, impact: low, cue: "Jambe tendue devant, penche le buste dos plat. Par jambe."}
-- {id: etirement_quadriceps, name: Étirement des quadriceps, role: cooldown, focus: [mobilite], equipment: aucun, level: 1, mode: time, base: 30, impact: low, cue: "Debout, talon vers la fesse, genoux serrés. Par jambe."}
-- {id: posture_enfant, name: Posture de l'enfant, role: cooldown, focus: [mobilite], equipment: aucun, level: 1, mode: time, base: 45, impact: low, cue: "Assis sur les talons, bras devant, relâche le dos et respire."}
-- {id: etirement_pectoraux, name: Étirement des pectoraux, role: cooldown, focus: [mobilite, haut], equipment: aucun, level: 1, mode: time, base: 30, impact: low, cue: "Avant-bras contre un encadrement de porte, avance doucement. Par côté."}
-- {id: respiration_lente, name: Respiration lente, role: cooldown, focus: [mobilite], equipment: aucun, level: 1, mode: time, base: 60, impact: low, cue: "Inspire 4 secondes, expire 6 secondes, épaules relâchées."}
+# --- Cool-down ---------------------------------------------------------------
+- {id: hamstring_stretch, name: Étirement des ischio-jambiers, role: cooldown, focus: [mobility], equipment: none, level: 1, mode: time, base: 40, impact: low, cue: "Jambe tendue devant, penche le buste dos plat. Par jambe."}
+- {id: quad_stretch, name: Étirement des quadriceps, role: cooldown, focus: [mobility], equipment: none, level: 1, mode: time, base: 30, impact: low, cue: "Debout, talon vers la fesse, genoux serrés. Par jambe."}
+- {id: childs_pose, name: Posture de l'enfant, role: cooldown, focus: [mobility], equipment: none, level: 1, mode: time, base: 45, impact: low, cue: "Assis sur les talons, bras devant, relâche le dos et respire."}
+- {id: chest_stretch, name: Étirement des pectoraux, role: cooldown, focus: [mobility, upper], equipment: none, level: 1, mode: time, base: 30, impact: low, cue: "Avant-bras contre un encadrement de porte, avance doucement. Par côté."}
+- {id: slow_breathing, name: Respiration lente, role: cooldown, focus: [mobility], equipment: none, level: 1, mode: time, base: 60, impact: low, cue: "Inspire 4 secondes, expire 6 secondes, épaules relâchées."}

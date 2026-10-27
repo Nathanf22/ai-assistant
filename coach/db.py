@@ -1,8 +1,8 @@
-"""Modèle de données et accès base (SQLAlchemy 2.0, async).
+"""Data model and database access (SQLAlchemy 2.0, async).
 
-SQLite en développement, PostgreSQL en production : seul DATABASE_URL change.
-Aucune donnée médicale n'est stockée : une mention de douleur ou de blessure
-pose un drapeau `safety_hold`, sans conserver le détail.
+SQLite in development, PostgreSQL in production: only DATABASE_URL changes.
+No medical data is stored: a mention of pain or injury sets a `safety_hold` flag
+without keeping the details.
 """
 
 from __future__ import annotations
@@ -37,38 +37,38 @@ class User(Base):
     onboarded_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     invite_code: Mapped[str] = mapped_column(String(40), default="")
 
-    # Objectifs et contraintes
+    # Goals and constraints
     goal_text: Mapped[str] = mapped_column(Text, default="")
     sessions_per_week: Mapped[int] = mapped_column(Integer, default=3)
-    level: Mapped[str] = mapped_column(String(20), default="debutant")
-    equipment: Mapped[list] = mapped_column(default=list)  # ["aucun", "elastique", ...]
-    # Créneaux habituels : [{"day": 0..6 (lundi=0), "time": "18:30", "minutes": 30}]
+    level: Mapped[str] = mapped_column(String(20), default="beginner")
+    equipment: Mapped[list] = mapped_column(default=list)  # ["band", "dumbbells", "bench"]
+    # Usual slots: [{"day": 0..6 (Monday=0), "time": "18:30", "minutes": 30}]
     slots: Mapped[list] = mapped_column(default=list)
 
-    # Alimentation
-    food_exclusions: Mapped[list] = mapped_column(default=list)  # jamais proposés
-    food_dislikes: Mapped[list] = mapped_column(default=list)  # évités si possible
-    pantry: Mapped[list] = mapped_column(default=list)  # déjà en stock
+    # Food
+    food_exclusions: Mapped[list] = mapped_column(default=list)  # never suggested
+    food_dislikes: Mapped[list] = mapped_column(default=list)  # avoided when possible
+    pantry: Mapped[list] = mapped_column(default=list)  # already in stock
     dinners_per_week: Mapped[int] = mapped_column(Integer, default=5)
 
-    # Préférences d'exercices (US17)
+    # Exercise preferences (US17)
     liked_exercises: Mapped[list] = mapped_column(default=list)
     avoided_exercises: Mapped[list] = mapped_column(default=list)
 
     # Messages (US12)
     brief_time: Mapped[str] = mapped_column(String(5), default="07:45")
     planning_time: Mapped[str] = mapped_column(String(5), default="18:00")
-    quiet_dates: Mapped[list] = mapped_column(default=list)  # dates ISO sans message
-    # Anti-doublons du planificateur
+    quiet_dates: Mapped[list] = mapped_column(default=list)  # ISO dates with no automatic message
+    # Scheduler de-duplication markers
     last_brief_on: Mapped[date | None] = mapped_column(Date)
     last_planning_on: Mapped[date | None] = mapped_column(Date)
     survey_sent_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
-    # Bot bloqué par l'utilisateur : plus aucun envoi automatique jusqu'à son prochain message
+    # Bot blocked by the user: no automatic message until they write again
     blocked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
-    # Progression (US16, US18) : charge de 1 (très léger) à 10
+    # Progression (US16, US18): load from 1 (very light) to 10
     load_level: Mapped[int] = mapped_column(Integer, default=3)
-    # Garde-fou (US20) : ajustements suspendus après une mention de douleur
+    # Safety guardrail (US20): progression paused after a mention of pain
     safety_hold: Mapped[bool] = mapped_column(Boolean, default=False)
     safety_hold_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
@@ -86,7 +86,7 @@ class WeekPlan(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), index=True)
-    week_start: Mapped[date] = mapped_column(Date, index=True)  # lundi
+    week_start: Mapped[date] = mapped_column(Date, index=True)  # Monday
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
     # [{"name", "quantity", "unit", "aisle"}]
     grocery: Mapped[list] = mapped_column(default=list)
@@ -132,7 +132,7 @@ class PlannedMeal(Base):
 
 
 class ChatMessage(Base):
-    """Historique court de conversation, pour le contexte de l'agent."""
+    """Short conversation history, used as context for the agent."""
 
     __tablename__ = "chat_messages"
 
@@ -144,7 +144,7 @@ class ChatMessage(Base):
 
 
 class EventLog(Base):
-    """Journal de chaque plan, retour et ajustement (observabilité et métriques du pilote)."""
+    """Log of every plan, feedback and adjustment (observability and pilot metrics)."""
 
     __tablename__ = "event_log"
 
