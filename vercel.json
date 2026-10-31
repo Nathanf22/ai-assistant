@@ -1,10 +1,17 @@
 {
-  "regions": ["cdg1"],
+  "regions": [
+    "cdg1"
+  ],
   "functions": {
     "api/index.py": {
       "maxDuration": 60,
       "includeFiles": "coach/library/**"
     }
   },
-  "rewrites": [{ "source": "/api/(.*)", "destination": "/api/index" }]
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/index?route=$1"
+    }
+  ]
 }

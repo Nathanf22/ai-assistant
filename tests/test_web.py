@@ -135,6 +135,12 @@ async def test_asgi_app_answers_json(prod_settings, fake_app):
     assert sent[0]["status"] == 404
     assert json.loads(sent[1]["body"]) == {"error": "not found"}
 
+    # Behind the vercel.json rewrite, the route arrives as a query parameter.
+    sent.clear()
+    await web.app({"type": "http", "method": "GET", "path": "/api/index",
+                   "query_string": b"route=tick", "headers": []}, receive, send)
+    assert sent[0]["status"] == 401
+
 
 @pytest.mark.parametrize(("url", "expected"), [
     ("postgres://u:p@ep-x.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require",

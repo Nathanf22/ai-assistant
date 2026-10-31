@@ -17,6 +17,7 @@ import json
 import logging
 import os
 from typing import Any
+from urllib.parse import parse_qs
 
 from telegram import Update
 from telegram.ext import Application, ContextTypes
@@ -120,7 +121,11 @@ async def app(scope: dict, receive, send) -> None:
         if not message.get("more_body"):
             break
     headers = {k.decode("latin-1").lower(): v.decode("latin-1") for k, v in scope.get("headers", [])}
-    status, payload = await handle(scope["method"], scope["path"], headers, body)
+    # The vercel.json rewrite hands the original route over as ?route=..., since the function
+    # itself only sees /api/index.
+    query = parse_qs(scope.get("query_string", b"").decode("latin-1"))
+    path = "/api/" + query["route"][0] if "route" in query else scope["path"]
+    status, payload = await handle(scope["method"], path, headers, body)
     await send({"type": "http.response.start", "status": status,
                 "headers": [(b"content-type", b"application/json")]})
     await send({"type": "http.response.body", "body": json.dumps(payload).encode()})
