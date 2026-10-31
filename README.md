@@ -63,10 +63,35 @@ docker compose logs -f bot
 
 The bot uses *polling*: no public URL is needed, a small machine or container is enough.
 
+### On Vercel (webhook mode)
+
+Vercel has no long-running process, so production runs in webhook mode (`coach/web.py`, served by `api/index.py`): Telegram pushes each update to `/api/telegram`, and an external cron calls `/api/tick` every minute to run the scheduler.
+
+Local and production environments never share anything:
+
+| | Local | Production |
+| --- | --- | --- |
+| Telegram bot | a test bot | a separate production bot |
+| Variables | `.env` (from `.env.example`) | Vercel > Settings > Environment Variables, scope Production (list in `.env.production.example`) |
+| Database | SQLite (`coach.db`) | Neon PostgreSQL |
+| Mode | polling (`coach-bot`) | webhook (`coach-bot` refuses to start when `TELEGRAM_WEBHOOK_SECRET` is set) |
+
+`.env` files are listed in `.vercelignore` and are never uploaded.
+
+1. **Database.** In the Neon project, create a dedicated database (e.g. `coach`) rather than reusing one that already holds other tables: `create_all()` silently skips existing tables with the same name. Check the project is in an EU region. Copy the *direct* (non-pooled) connection string; `postgres://...?sslmode=require` URLs are accepted as-is.
+2. **Project.** Import the repository in Vercel (framework preset "Other"). `vercel.json` pins the function to Paris (`cdg1`).
+3. **Variables.** Set every variable of `.env.production.example` in the Production scope. Generate both secrets with `openssl rand -hex 32`.
+4. **Deploy**, then register the webhook once:
+   ```bash
+   curl -H "Authorization: Bearer $CRON_SECRET" https://<project>.vercel.app/api/set-webhook
+   ```
+5. **Scheduler.** The Hobby plan only allows daily Vercel crons. `.github/workflows/tick.yml` calls `/api/tick` every 5 minutes instead: set the repository secret `CRON_SECRET` and the repository variable `PRODUCTION_URL` (`https://<project>.vercel.app`). GitHub may run it late; for minute precision use an external cron (e.g. cron-job.org) sending `GET /api/tick` with `Authorization: Bearer <CRON_SECRET>`. On the Pro plan, add `"crons": [{"path": "/api/tick", "schedule": "* * * * *"}]` to `vercel.json` instead (Vercel sends the header itself).
+6. **Check:** Vercel > Logs, then `/start` on the production bot.
+
 ### Tests
 
 ```bash
-pytest -q        # 136 tests: rules, planning, fake agent, scheduler, Telegram handlers
+pytest -q        # 151 tests: rules, planning, fake agent, scheduler, Telegram handlers
 ruff check .
 ```
 

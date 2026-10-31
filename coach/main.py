@@ -17,6 +17,11 @@ def run() -> None:
     settings = get_settings()
     if not settings.anthropic_api_key:
         raise SystemExit("ANTHROPIC_API_KEY is missing (see .env.example).")
+    if settings.telegram_webhook_secret:
+        # Polling deletes the bot's webhook: running it on the production config would cut off
+        # the deployed bot.
+        raise SystemExit("TELEGRAM_WEBHOOK_SECRET is set: this is a webhook (production) config, "
+                         "polling refused. Use a separate local bot and .env.")
 
     lib = get_library()
     logging.info("Library loaded: %d exercises, %d recipes", len(lib.exercises), len(lib.recipes))

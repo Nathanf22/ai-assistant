@@ -1,0 +1,14 @@
+# Never upload local secrets or local data to Vercel.
+.env
+.env.*
+*.db
+*.db-journal
+.venv/
+venv/
+tests/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+*.bundle
+Dockerfile
+docker-compose.yml

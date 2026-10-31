@@ -12,8 +12,10 @@ from contextlib import asynccontextmanager
 from datetime import UTC, date, datetime
 
 from sqlalchemy import JSON, BigInteger, Boolean, Date, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy.engine import make_url
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
+from sqlalchemy.pool import NullPool
 
 from coach.config import get_settings
 
@@ -157,10 +159,28 @@ class EventLog(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow, index=True)
 
 
+def normalize_database_url(url: str) -> str:
+    """Accept the plain `postgres://...?sslmode=require` URLs that hosted providers (Neon,
+    Vercel) hand out, and turn them into what the asyncpg driver expects."""
+    parsed = make_url(url)
+    if parsed.drivername not in ("postgres", "postgresql"):
+        return url
+    query = dict(parsed.query)
+    sslmode = query.pop("sslmode", None)
+    query.pop("channel_binding", None)  # libpq-only option, unknown to asyncpg
+    if sslmode and "ssl" not in query:
+        query["ssl"] = sslmode
+    return parsed.set(drivername="postgresql+asyncpg", query=query).render_as_string(
+        hide_password=False
+    )
+
+
 class Database:
-    def __init__(self, url: str | None = None) -> None:
-        url = url or get_settings().database_url
-        self.engine = create_async_engine(url, future=True)
+    def __init__(self, url: str | None = None, serverless: bool = False) -> None:
+        url = normalize_database_url(url or get_settings().database_url)
+        # Serverless instances can be frozen between requests: pooled connections would go stale.
+        options = {"poolclass": NullPool} if serverless else {}
+        self.engine = create_async_engine(url, future=True, **options)
         self.sessionmaker = async_sessionmaker(self.engine, expire_on_commit=False)
 
     async def create_all(self) -> None:

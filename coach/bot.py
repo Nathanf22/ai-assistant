@@ -443,7 +443,9 @@ async def send_planning(context: ContextTypes.DEFAULT_TYPE, s, user: User, week_
 # --- Application -----------------------------------------------------------------------------
 
 
-def build_application(db: Database, agent: Agent) -> Application:
+def build_application(db: Database, agent: Agent, schedule_jobs: bool = True) -> Application:
+    """Build the Telegram application. In webhook mode the scheduler runs from an HTTP cron
+    (`coach.web`), so `schedule_jobs` is False."""
     from coach.jobs import register_jobs
 
     settings = get_settings()
@@ -479,5 +481,6 @@ def build_application(db: Database, agent: Agent) -> Application:
     app.add_handler(CommandHandler("stats", cmd_stats))
     app.add_handler(CallbackQueryHandler(on_button))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_text))
-    register_jobs(app)
+    if schedule_jobs:
+        register_jobs(app)
     return app

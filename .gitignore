@@ -12,3 +12,7 @@ dist/
 *.egg-info/
 .DS_Store
 *.bundle
+.env.*
+!.env.example
+!.env.production.example
+.vercel/

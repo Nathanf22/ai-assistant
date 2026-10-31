@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     anthropic_api_key: str = ""
 
     # Model used by the conversational agent.
-    llm_model: str = "claude-sonnet-5-5"
+    llm_model: str = "claude-haiku-5-5"
     llm_max_tokens: int = 1024
     llm_max_tool_rounds: int = 6
     # Prices (USD per million tokens) used to estimate cost in the metrics.
@@ -33,6 +33,12 @@ class Settings(BaseSettings):
 
     # Delay (minutes) after a session's planned end before asking for feedback.
     feedback_delay_minutes: int = 45
+
+    # Webhook mode (production on Vercel). Leave both empty locally, where the bot polls.
+    # Secret Telegram echoes in the X-Telegram-Bot-Api-Secret-Token header of every update.
+    telegram_webhook_secret: str = ""
+    # Bearer token required to call /api/tick and /api/set-webhook (Vercel Cron sends it).
+    cron_secret: str = ""
 
     @property
     def admin_ids(self) -> set[int]:
